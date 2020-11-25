@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
+import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiUtils;
 
 
 @Component
@@ -20,15 +21,17 @@ public class GraduationStatusTransformer {
 
     public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
     	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
-        return gradStatus;
+    	gradStatus.setGraduationDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
+    	return gradStatus;
     }
 
     public GraduationStatus transformToDTO ( Optional<GraduationStatusEntity> gradStatusEntity ) {
     	GraduationStatusEntity cae = new GraduationStatusEntity();
         if (gradStatusEntity.isPresent())
             cae = gradStatusEntity.get();
-
+        	
         GraduationStatus gradStatus = modelMapper.map(cae, GraduationStatus.class);
+        gradStatus.setGraduationDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
         return gradStatus;
     }
 
@@ -37,6 +40,7 @@ public class GraduationStatusTransformer {
         for (GraduationStatusEntity gradStatusEntity : gradStatusEntities) {
         	GraduationStatus gradStatus = new GraduationStatus();
         	gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);            
+        	gradStatus.setGraduationDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
         	gradStatusList.add(gradStatus);
         }
         return gradStatusList;

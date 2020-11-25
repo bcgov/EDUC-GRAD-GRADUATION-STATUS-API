@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,5 +29,11 @@ public class GraduationStatusController {
     public GraduationStatus getStudentGradStatus(@PathVariable String pen) {
         logger.debug("Get Student Grad Status for PEN: " + pen);
         return gradStatusService.getGraduationStatus(pen);
+    }
+    
+    @PostMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_PEN)
+    public GraduationStatus saveStudentGradStatus(@PathVariable String pen, @RequestBody GraduationStatus graduationStatus) {
+        logger.debug("Save tudent Grad Status for PEN: " + pen);
+        return gradStatusService.saveGraduationStatus(pen,graduationStatus);
     }
 }
