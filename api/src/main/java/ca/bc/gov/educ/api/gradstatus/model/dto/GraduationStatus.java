@@ -1,7 +1,5 @@
 package ca.bc.gov.educ.api.gradstatus.model.dto;
 
-import java.sql.Date;
-
 import org.springframework.stereotype.Component;
 
 import lombok.Data;
@@ -17,8 +15,8 @@ public class GraduationStatus {
     private StringBuffer studentGradData;
     private String pen;
     private String gradProgram;
-    private Date graduationDate; 
-    private Date sccpGraduationDate;
+    private String graduationDate; 
+    private String sccpGraduationDate;
     private String schoolAtGrad;
     private String gradProgramAtGraduation;
     private String studentGradeAtGraduation;
@@ -26,20 +24,19 @@ public class GraduationStatus {
     private String honoursFlag;
     private String certificateType1;
     private String certificateType2;
-    private Date certificateType1Date; 
-    private Date certificateType2Date; 
+    private String certificateType1Date; 
+    private String certificateType2Date; 
     private String frenchProgramParticipation;
     private String advancePlacementParticipation;    
     private String careerProgramParticipation;
     private String recalculateFlag;
     private String dualDogwoodEligibility;
     private String ibParticipationFlag;    
-    private Date transcriptDate;
-    private Date lastUpdatedDate;    
+    private String transcriptDate;    
     private String createdBy;
-    private Date createdTimestamp;
+    private String createdTimestamp;
     private String updatedBy;
-    private Date updatedTimestamp;
+    private String updatedTimestamp;
 	
 				
 }
