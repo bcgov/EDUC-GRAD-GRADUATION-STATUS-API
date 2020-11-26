@@ -40,19 +40,11 @@ public class GraduationStatusService {
 		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 		if(gradStatusOptional.isPresent()) {
 			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity);
+			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp");
+			gradEnity.setGraduationDate(sourceObject.getGraduationDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(sourceObject));
 		}
 	}
-
-	public GraduationStatus saveGraduationStatuss(String pen, String graduationStatus) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-    
-    
-
-    
 }
