@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstatus.model.entity;
 
-import java.util.Date;
+import java.sql.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -101,20 +101,20 @@ public class GraduationStatusEntity {
 		//TODO: RLO . is this the best place to do this?
 		this.updatedBy = "GRADUATION";
 		this.createdBy = "GRADUATION";
-		this.createdTimestamp = new Date();
-		this.updatedTimestamp = new Date();
+		this.createdTimestamp = new Date(System.currentTimeMillis());
+		this.updatedTimestamp = new Date(System.currentTimeMillis());
 
 	}
 
 	@PreUpdate
 	protected void onPersist() {
-		this.updatedTimestamp = new Date();
+		this.updatedTimestamp = new Date(System.currentTimeMillis());
 		this.updatedBy = "GRADUATION";
 		if (StringUtils.isBlank(createdBy)) {
 			createdBy = "GRADUATION";
 		}
-		if (createdTimestamp == null) {
-			createdTimestamp = new Date();
+		if (this.createdTimestamp == null) {
+			this.createdTimestamp = new Date(System.currentTimeMillis());
 		}
 	}
 

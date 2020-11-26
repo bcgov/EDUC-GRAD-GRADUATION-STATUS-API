@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstatus.model.transformer;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
     	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
-    	gradStatus.setGraduationDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
+    	gradStatus.setGraduationDate(EducGradStatusApiUtils.parseDateFromString(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
     	return gradStatus;
     }
 
@@ -48,6 +49,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatusEntity transformToEntity(GraduationStatus gradStatus) {
         GraduationStatusEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStatusEntity.class);
+        gradStatusEntity.setGraduationDate(Date.valueOf(gradStatus.getGraduationDate()));
         return gradStatusEntity;
     }
 }
