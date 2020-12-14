@@ -73,7 +73,7 @@ public class EducGradStatusApiUtils {
         if (sessionDate == null)
             return null;
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.TRAX_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
         Date date = new Date();
 
         try {

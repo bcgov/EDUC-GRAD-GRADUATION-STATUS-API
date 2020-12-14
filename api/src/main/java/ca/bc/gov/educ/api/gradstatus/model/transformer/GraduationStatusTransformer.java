@@ -49,7 +49,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatusEntity transformToEntity(GraduationStatus gradStatus) {
         GraduationStatusEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStatusEntity.class);
-        gradStatusEntity.setGraduationDate(Date.valueOf(gradStatus.getGraduationDate()));
+        gradStatusEntity.setGraduationDate(gradStatus.getGraduationDate() != null ?Date.valueOf(gradStatus.getGraduationDate()) : null);
         return gradStatusEntity;
     }
 }
