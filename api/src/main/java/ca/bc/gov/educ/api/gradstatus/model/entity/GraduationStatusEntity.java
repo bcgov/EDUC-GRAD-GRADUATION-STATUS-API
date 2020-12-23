@@ -84,6 +84,12 @@ public class GraduationStatusEntity {
     @Column(name = "TRANSCRIPT_DT", nullable = true)
     private Date transcriptDate;
     
+    @Column(name = "SCHOOL_OF_RECORD", nullable = true)
+    private String schoolOfRecord;
+    
+    @Column(name = "STUD_GRADE", nullable = true)
+    private String studentGrade;    
+    
     @Column(name = "created_by", nullable = false)
     private String createdBy;
 

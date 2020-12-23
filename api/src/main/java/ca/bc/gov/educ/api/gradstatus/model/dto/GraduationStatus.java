@@ -32,7 +32,9 @@ public class GraduationStatus {
     private String recalculateFlag;
     private String dualDogwoodEligibility;
     private String ibParticipationFlag;    
-    private String transcriptDate;    
+    private String transcriptDate;  
+    private String schoolOfRecord;
+    private String studentGrade;
     private String createdBy;
     private String createdTimestamp;
     private String updatedBy;
