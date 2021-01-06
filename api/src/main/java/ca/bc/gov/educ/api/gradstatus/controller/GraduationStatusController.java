@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstatus.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,8 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.service.GraduationStatusService;
+import ca.bc.gov.educ.api.gradstatus.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
+import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
 import ca.bc.gov.educ.api.gradstatus.util.PermissionsContants;
+import ca.bc.gov.educ.api.gradstatus.util.ResponseHelper;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,18 +36,31 @@ public class GraduationStatusController {
 
     @Autowired
     GraduationStatusService gradStatusService;
+    
+    @Autowired
+	GradValidation validation;
+    
+    @Autowired
+	ResponseHelper response;
 
     @GetMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_PEN)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
-    public GraduationStatus getStudentGradStatus(@PathVariable String pen) {
+    public ResponseEntity<GraduationStatus> getStudentGradStatus(@PathVariable String pen) {
         logger.debug("Get Student Grad Status for PEN: " + pen);
-        return gradStatusService.getGraduationStatus(pen);
+        return response.GET(gradStatusService.getGraduationStatus(pen));
     }
     
     @PostMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_PEN)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
-    public GraduationStatus saveStudentGradStatus(@PathVariable String pen, @RequestBody GraduationStatus graduationStatus) {
+    public ResponseEntity<ApiResponseModel<GraduationStatus>> saveStudentGradStatus(@PathVariable String pen, @RequestBody GraduationStatus graduationStatus) {
         logger.debug("Save student Grad Status for PEN: " + pen);
-        return gradStatusService.saveGraduationStatus(pen,graduationStatus);
+        return response.UPDATED(gradStatusService.saveGraduationStatus(pen,graduationStatus));
+    }
+    
+    @GetMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_CERTIFICATE_TYPE)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    public ResponseEntity<Boolean> getStudentGradStatusByCertificateType(@PathVariable String certificateType) {
+        logger.debug("Get Student Grad Status for CERT: " + certificateType);
+        return response.GET(gradStatusService.getStudentGradStatusByCertificateType(certificateType));
     }
 }
