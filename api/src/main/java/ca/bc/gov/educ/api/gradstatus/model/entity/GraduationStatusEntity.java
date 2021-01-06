@@ -51,10 +51,10 @@ public class GraduationStatusEntity {
     @Column(name = "HONOURS_STANDING_FLG", nullable = true)
     private String honoursFlag;
     
-    @Column(name = "CERTIFICATE_TYPE_1", nullable = true)
+    @Column(name = "FK_GRAD_CERTIFICATE_TYPES_CODE_1", nullable = true)
     private String certificateType1;
     
-    @Column(name = "CERTIFICATE_TYPE_2", nullable = true)
+    @Column(name = "FK_GRAD_CERTIFICATE_TYPES_CODE_2", nullable = true)
     private String certificateType2;
     
     @Column(name = "CERTIFICATE_TYPE_1_DT", nullable = true)
@@ -83,6 +83,12 @@ public class GraduationStatusEntity {
     
     @Column(name = "TRANSCRIPT_DT", nullable = true)
     private Date transcriptDate;
+    
+    @Column(name = "SCHOOL_OF_RECORD", nullable = true)
+    private String schoolOfRecord;
+    
+    @Column(name = "STUD_GRADE", nullable = true)
+    private String studentGrade;    
     
     @Column(name = "created_by", nullable = false)
     private String createdBy;
