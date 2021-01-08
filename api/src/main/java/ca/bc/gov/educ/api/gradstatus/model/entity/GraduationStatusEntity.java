@@ -36,15 +36,6 @@ public class GraduationStatusEntity {
     @Column(name = "SCCP_COMPLETION_DT", nullable = true)
     private Date sccpGraduationDate;
     
-    @Column(name = "SCHOOL_AT_GRAD", nullable = true)
-    private String schoolAtGrad;
-    
-    @Column(name = "GRAD_PROGRAM_AT_GRAD", nullable = true)
-    private String gradProgramAtGraduation;
-    
-    @Column(name = "STUD_GRADE_AT_GRAD", nullable = true)
-    private String studentGradeAtGraduation;
-    
     @Column(name = "GPA", nullable = true)
     private String gpa;
     
@@ -74,9 +65,6 @@ public class GraduationStatusEntity {
     
     @Column(name = "RECALCULATE_FLG", nullable = true)
     private String recalculateFlag;
-    
-    @Column(name = "DUAL_DOGWOOD_ELIG", nullable = true)
-    private String dualDogwoodEligibility;
     
     @Column(name = "IB_PCP_IB_FLG", nullable = true)
     private String ibParticipationFlag;    
