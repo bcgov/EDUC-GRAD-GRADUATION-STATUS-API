@@ -19,8 +19,6 @@ public class GraduationStatus extends BaseModel{
     private String gradProgram;
     private String graduationDate; 
     private String sccpGraduationDate;
-    private String schoolAtGrad;
-    private String gradProgramAtGraduation;
     private String studentGradeAtGraduation;
     private String gpa;
     private String honoursFlag;
@@ -32,7 +30,6 @@ public class GraduationStatus extends BaseModel{
     private String advancePlacementParticipation;    
     private String careerProgramParticipation;
     private String recalculateFlag;
-    private String dualDogwoodEligibility;
     private String ibParticipationFlag;    
     private String transcriptDate;  
     private String schoolOfRecord;
