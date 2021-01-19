@@ -52,9 +52,9 @@ public class GraduationStatusController {
     
     @PostMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_PEN)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
-    public ResponseEntity<ApiResponseModel<GraduationStatus>> saveStudentGradStatus(@PathVariable String pen, @RequestBody GraduationStatus graduationStatus) {
+    public ResponseEntity<GraduationStatus> saveStudentGradStatus(@PathVariable String pen, @RequestBody GraduationStatus graduationStatus) {
         logger.debug("Save student Grad Status for PEN: " + pen);
-        return response.UPDATED(gradStatusService.saveGraduationStatus(pen,graduationStatus));
+        return response.GET(gradStatusService.saveGraduationStatus(pen,graduationStatus));
     }
     
     @GetMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_CERTIFICATE_TYPE)
