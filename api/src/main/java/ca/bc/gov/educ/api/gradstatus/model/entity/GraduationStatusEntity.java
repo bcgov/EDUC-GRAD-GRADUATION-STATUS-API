@@ -27,14 +27,11 @@ public class GraduationStatusEntity {
     @Column(name = "STUDENT_GRAD_DATA", columnDefinition="CLOB")
     private String studentGradData;
 
-    @Column(name = "GRAD_PROGRAM", nullable = true)
-    private String gradProgram;
+    @Column(name = "PROGRAM", nullable = true)
+    private String program;
     
-    @Column(name = "GRAD_DT", nullable = true)
-    private Date graduationDate; 
-    
-    @Column(name = "SCCP_COMPLETION_DT", nullable = true)
-    private Date sccpGraduationDate;
+    @Column(name = "PROGRAM_COMPLETION_DT", nullable = true)
+    private Date programCompletionDate; 
     
     @Column(name = "GPA", nullable = true)
     private String gpa;
@@ -52,25 +49,10 @@ public class GraduationStatusEntity {
     private Date certificateType1Date; 
     
     @Column(name = "CERTIFICATE_TYPE_2_DT", nullable = true)
-    private Date certificateType2Date; 
-    
-    @Column(name = "FRN_PGM_PCP_FLG", nullable = true)
-    private String frenchProgramParticipation;
-    
-    @Column(name = "ADV_PLMNT_PCP_FLG", nullable = true)
-    private String advancePlacementParticipation;    
-    
-    @Column(name = "CAREER_PGM_PCP_FLG", nullable = true)
-    private String careerProgramParticipation;
+    private Date certificateType2Date;        
     
     @Column(name = "RECALCULATE_FLG", nullable = true)
     private String recalculateFlag;
-    
-    @Column(name = "IB_PCP_IB_FLG", nullable = true)
-    private String ibParticipationFlag;    
-    
-    @Column(name = "TRANSCRIPT_DT", nullable = true)
-    private Date transcriptDate;
     
     @Column(name = "SCHOOL_OF_RECORD", nullable = true)
     private String schoolOfRecord;

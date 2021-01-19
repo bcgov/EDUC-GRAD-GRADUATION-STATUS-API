@@ -42,7 +42,7 @@ public class GraduationStatusService {
 		if(gradStatusOptional.isPresent()) {
 			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
 			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp");
-			gradEnity.setGraduationDate(sourceObject.getGraduationDate());
+			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(sourceObject));

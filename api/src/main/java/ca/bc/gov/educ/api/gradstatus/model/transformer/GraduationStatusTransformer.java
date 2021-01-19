@@ -22,7 +22,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
     	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
-    	gradStatus.setGraduationDate(EducGradStatusApiUtils.parseDateFromString(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
+    	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate().toString():null));
     	return gradStatus;
     }
 
@@ -32,7 +32,7 @@ public class GraduationStatusTransformer {
             cae = gradStatusEntity.get();
         	
         GraduationStatus gradStatus = modelMapper.map(cae, GraduationStatus.class);
-        gradStatus.setGraduationDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
+        gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate().toString():null));
         return gradStatus;
     }
 
@@ -41,7 +41,7 @@ public class GraduationStatusTransformer {
         for (GraduationStatusEntity gradStatusEntity : gradStatusEntities) {
         	GraduationStatus gradStatus = new GraduationStatus();
         	gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);            
-        	gradStatus.setGraduationDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getGraduationDate() != null ? gradStatus.getGraduationDate().toString():null));
+        	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate().toString():null));
         	gradStatusList.add(gradStatus);
         }
         return gradStatusList;
@@ -49,7 +49,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatusEntity transformToEntity(GraduationStatus gradStatus) {
         GraduationStatusEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStatusEntity.class);
-        gradStatusEntity.setGraduationDate(gradStatus.getGraduationDate() != null ?Date.valueOf(gradStatus.getGraduationDate()) : null);
+        gradStatusEntity.setProgramCompletionDate(gradStatus.getProgramCompletionDate() != null ?Date.valueOf(gradStatus.getProgramCompletionDate()) : null);
         return gradStatusEntity;
     }
 }
