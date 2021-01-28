@@ -47,7 +47,12 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     public ResponseEntity<GraduationStatus> getStudentGradStatus(@PathVariable String pen) {
         logger.debug("Get Student Grad Status for PEN: " + pen);
-        return response.GET(gradStatusService.getGraduationStatus(pen));
+        GraduationStatus gradResponse = gradStatusService.getGraduationStatus(pen);
+        if(gradResponse != null) {
+    		return response.GET(gradResponse);
+    	}else {
+    		return response.NOT_FOUND();
+    	}
     }
     
     @PostMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_PEN)

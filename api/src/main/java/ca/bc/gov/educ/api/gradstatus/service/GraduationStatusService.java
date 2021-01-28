@@ -32,7 +32,12 @@ public class GraduationStatusService {
 
 	public GraduationStatus getGraduationStatus(String pen) {
 		logger.info("getGraduationStatus");
-		return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findById(pen));
+		Optional<GraduationStatusEntity> resposneOptional = graduationStatusRepository.findById(pen);
+		if(resposneOptional.isPresent()) {
+			return graduationStatusTransformer.transformToDTO(resposneOptional.get());
+		}else {
+			return null;
+		}
 	    
 	}
 
