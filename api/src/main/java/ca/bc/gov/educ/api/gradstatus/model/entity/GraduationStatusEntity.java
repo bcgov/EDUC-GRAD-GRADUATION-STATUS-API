@@ -27,7 +27,7 @@ public class GraduationStatusEntity {
     @Column(name = "STUDENT_GRAD_DATA", columnDefinition="CLOB")
     private String studentGradData;
 
-    @Column(name = "PROGRAM", nullable = true)
+    @Column(name = "FK_GRAD_PROGRAM_CODE", nullable = true)
     private String program;
     
     @Column(name = "PROGRAM_COMPLETION_DT", nullable = true)
@@ -36,23 +36,11 @@ public class GraduationStatusEntity {
     @Column(name = "GPA", nullable = true)
     private String gpa;
     
-    @Column(name = "HONOURS_STANDING_FLG", nullable = true)
-    private String honoursFlag;
+    @Column(name = "HONOURS_STANDING", nullable = true)
+    private String honoursFlag;        
     
-    @Column(name = "FK_GRAD_CERTIFICATE_TYPES_CODE_1", nullable = true)
-    private String certificateType1;
-    
-    @Column(name = "FK_GRAD_CERTIFICATE_TYPES_CODE_2", nullable = true)
-    private String certificateType2;
-    
-    @Column(name = "CERTIFICATE_TYPE_1_DT", nullable = true)
-    private Date certificateType1Date; 
-    
-    @Column(name = "CERTIFICATE_TYPE_2_DT", nullable = true)
-    private Date certificateType2Date;        
-    
-    @Column(name = "RECALCULATE_FLG", nullable = true)
-    private String recalculateFlag;
+    @Column(name = "RECALCULATE_GRAD_STATUS", nullable = true)
+    private String recalculateGradStatus;
     
     @Column(name = "SCHOOL_OF_RECORD", nullable = true)
     private String schoolOfRecord;

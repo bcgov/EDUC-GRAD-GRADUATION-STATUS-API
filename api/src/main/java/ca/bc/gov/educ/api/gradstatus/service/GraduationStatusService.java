@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstatus.service;
 
 
-import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -51,15 +50,6 @@ public class GraduationStatusService {
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(sourceObject));
-		}
-	}
-
-	public boolean getStudentGradStatusByCertificateType(String certificateType) {
-		List<GraduationStatusEntity> gradList = graduationStatusRepository.existsByCertificateType(certificateType);
-		if(gradList.size() > 0) {
-			return true;
-		}else {
-			return false;
 		}
 	}
 }
