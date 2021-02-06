@@ -16,7 +16,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "GRAD_STUDENT_GRADUATION_STATUS")
+@Table(name = "GRAD_STUDENT")
 public class GraduationStatusEntity {
 
     @Id
@@ -37,7 +37,7 @@ public class GraduationStatusEntity {
     private String gpa;
     
     @Column(name = "HONOURS_STANDING", nullable = true)
-    private String honoursFlag;        
+    private String honoursStanding;        
     
     @Column(name = "RECALCULATE_GRAD_STATUS", nullable = true)
     private String recalculateGradStatus;
