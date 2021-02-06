@@ -10,21 +10,13 @@ import lombok.EqualsAndHashCode;
 @Component
 public class GraduationStatus extends BaseModel{
 
-	public GraduationStatus() {
-        studentGradData = new StringBuffer();
-    }
-
-    private StringBuffer studentGradData;
+    private String studentGradData;
     private String pen;
     private String program;
     private String programCompletionDate;
     private String gpa;
-    private String honoursFlag;
-    private String certificateType1;
-    private String certificateType2;
-    private String certificateType1Date; 
-    private String certificateType2Date; 
-    private String recalculateFlag;   
+    private String honoursStanding;
+    private String recalculateGradStatus;   
     private String schoolOfRecord;
     private String studentGrade;	
 				
