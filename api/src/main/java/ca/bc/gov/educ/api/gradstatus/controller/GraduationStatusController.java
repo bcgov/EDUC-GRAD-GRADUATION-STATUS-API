@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.service.GraduationStatusService;
-import ca.bc.gov.educ.api.gradstatus.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
 import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
 import ca.bc.gov.educ.api.gradstatus.util.PermissionsContants;
@@ -60,12 +59,5 @@ public class GraduationStatusController {
     public ResponseEntity<GraduationStatus> saveStudentGradStatus(@PathVariable String pen, @RequestBody GraduationStatus graduationStatus) {
         logger.debug("Save student Grad Status for PEN: " + pen);
         return response.GET(gradStatusService.saveGraduationStatus(pen,graduationStatus));
-    }
-    
-    @GetMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_CERTIFICATE_TYPE)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
-    public ResponseEntity<Boolean> getStudentGradStatusByCertificateType(@PathVariable String certificateType) {
-        logger.debug("Get Student Grad Status for CERT: " + certificateType);
-        return response.GET(gradStatusService.getStudentGradStatusByCertificateType(certificateType));
-    }
+    }   
 }
