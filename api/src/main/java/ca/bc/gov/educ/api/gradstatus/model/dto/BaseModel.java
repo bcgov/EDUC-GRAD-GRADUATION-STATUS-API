@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstatus.model.dto;
 
-import java.sql.Date;
+import java.util.Date;
 
 import lombok.Data;
 

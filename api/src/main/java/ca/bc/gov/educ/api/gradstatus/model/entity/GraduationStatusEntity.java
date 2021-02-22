@@ -6,18 +6,16 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "GRAD_STUDENT")
-public class GraduationStatusEntity {
+public class GraduationStatusEntity extends BaseEntity {
 
     @Id
     @Column(name = "pen", nullable = false)
@@ -46,40 +44,5 @@ public class GraduationStatusEntity {
     private String schoolOfRecord;
     
     @Column(name = "STUD_GRADE", nullable = true)
-    private String studentGrade;    
-    
-    @Column(name = "created_by", nullable = false)
-    private String createdBy;
-
-    @Column(name = "created_timestamp", nullable = false)
-    private Date createdTimestamp;
-
-    @Column(name = "updated_by", nullable = false)
-    private String updatedBy;
-
-    @Column(name = "updated_timestamp", nullable = false)
-    private Date updatedTimestamp;
-    
-    @PrePersist
-	protected void onCreate() {
-		//TODO: RLO . is this the best place to do this?
-		this.updatedBy = "GRADUATION";
-		this.createdBy = "GRADUATION";
-		this.createdTimestamp = new Date(System.currentTimeMillis());
-		this.updatedTimestamp = new Date(System.currentTimeMillis());
-
-	}
-
-	@PreUpdate
-	protected void onPersist() {
-		this.updatedTimestamp = new Date(System.currentTimeMillis());
-		this.updatedBy = "GRADUATION";
-		if (StringUtils.isBlank(createdBy)) {
-			createdBy = "GRADUATION";
-		}
-		if (this.createdTimestamp == null) {
-			this.createdTimestamp = new Date(System.currentTimeMillis());
-		}
-	}
-
+    private String studentGrade;
 }
