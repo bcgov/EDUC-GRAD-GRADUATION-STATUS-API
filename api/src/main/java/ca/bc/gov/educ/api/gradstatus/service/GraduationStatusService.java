@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
@@ -115,5 +116,9 @@ public class GraduationStatusService {
 		}else {
 			return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
 		}
+	}
+
+	public List<GraduationStatus> getStudentsForGraduation() {
+		return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
 	}
 }

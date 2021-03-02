@@ -100,4 +100,12 @@ public class GraduationStatusController {
         logger.debug("Save student Grad Status for PEN: ");
         return response.GET(gradStatusService.saveStudentGradSpecialProgram(gradStudentSpecialProgram));
     }
+    
+    @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_RECALCULATE)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    public ResponseEntity<List<GraduationStatus>> getStudentsForGraduation() {
+        logger.debug("getStudentsForGraduation:");
+        return response.GET(gradStatusService.getStudentsForGraduation());
+    }
+    
 }
