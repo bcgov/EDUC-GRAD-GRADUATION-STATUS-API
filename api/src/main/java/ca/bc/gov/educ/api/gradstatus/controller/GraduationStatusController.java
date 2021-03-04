@@ -56,7 +56,7 @@ public class GraduationStatusController {
         if(gradResponse != null) {
     		return response.GET(gradResponse);
     	}else {
-    		return response.NOT_FOUND();
+    		return response.NO_CONTENT();
     	}
     }
     
@@ -90,7 +90,7 @@ public class GraduationStatusController {
         if(gradResponse.size() > 0) {
     		return response.GET(gradResponse);
     	}else {
-    		return response.NOT_FOUND();
+    		return response.NO_CONTENT();
     	}
     }
     
