@@ -10,9 +10,10 @@ public class EducGradStatusApiConstants {
     public static final String GRADUATION_STATUS_API_ROOT_MAPPING = "/api/" + API_VERSION + "/gradstatus";
     public static final String GRADUATION_STATUS_BY_PEN = "/pen/{pen}";
     public static final String GRAD_STUDENT_UPDATE_BY_PEN = "/gradstudent/pen/{pen}";
-    public static final String GRADUATE_STUDENT_BY_PEN = "pen/{pen}";
-    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "specialprogram/pen/{pen}";
-    public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "specialprogram";
+    public static final String GRADUATE_STUDENT_BY_PEN = "/pen/{pen}";
+    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/pen/{pen}";
+    public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "/specialprogram";
+    public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     
     //Default Attribute value constants
     public static final String DEFAULT_CREATED_BY = "GraduationStatusAPI";

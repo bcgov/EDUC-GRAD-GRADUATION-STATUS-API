@@ -11,4 +11,6 @@ import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
 public interface GraduationStatusRepository extends JpaRepository<GraduationStatusEntity, String> {
 
     List<GraduationStatusEntity> findAll();
+
+	List<GraduationStatusEntity> findByRecalculateGradStatus(String recalulateFlag);
 }
