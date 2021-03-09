@@ -56,7 +56,7 @@ public class GraduationStatusController {
         if(gradResponse != null) {
     		return response.GET(gradResponse);
     	}else {
-    		return response.NOT_FOUND();
+    		return response.NO_CONTENT();
     	}
     }
     
@@ -90,7 +90,7 @@ public class GraduationStatusController {
         if(gradResponse.size() > 0) {
     		return response.GET(gradResponse);
     	}else {
-    		return response.NOT_FOUND();
+    		return response.NO_CONTENT();
     	}
     }
     
@@ -100,4 +100,12 @@ public class GraduationStatusController {
         logger.debug("Save student Grad Status for PEN: ");
         return response.GET(gradStatusService.saveStudentGradSpecialProgram(gradStudentSpecialProgram));
     }
+    
+    @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_RECALCULATE)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    public ResponseEntity<List<GraduationStatus>> getStudentsForGraduation() {
+        logger.debug("getStudentsForGraduation:");
+        return response.GET(gradStatusService.getStudentsForGraduation());
+    }
+    
 }
