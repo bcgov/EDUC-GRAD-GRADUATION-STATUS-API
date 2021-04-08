@@ -19,5 +19,6 @@ public class GraduationStatus extends BaseModel{
     private String recalculateGradStatus;   
     private String schoolOfRecord;
     private String studentGrade;	
+    private String studentStatus;
 				
 }
