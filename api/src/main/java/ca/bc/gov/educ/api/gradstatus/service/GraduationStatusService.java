@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstatus.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,10 @@ public class GraduationStatusService {
     
     @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SPECIAL_PROGRAM_NAME_URL)
     private String getGradSpecialProgramName;
+    
+    @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SPECIAL_PROGRAM_DETAILS_URL)
+    private String getGradSpecialProgramDetails;
+    
 
 	public GraduationStatus getGraduationStatus(String pen) {
 		logger.info("getGraduationStatus");
@@ -70,7 +75,7 @@ public class GraduationStatusService {
 		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 		if(gradStatusOptional.isPresent()) {
 			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp");
+			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGrade","studentStatus");
 			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
@@ -120,5 +125,21 @@ public class GraduationStatusService {
 
 	public List<GraduationStatus> getStudentsForGraduation() {
 		return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
+	}
+
+	public GradStudentSpecialProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(String pen,String programCode,String specialProgramCode,
+			String accessToken) {
+		HttpHeaders httpHeaders = EducGradStatusApiUtils.getHeaders(accessToken);
+		GradSpecialProgram gradSpecialProgramDetails = restTemplate.exchange(String.format(getGradSpecialProgramDetails,programCode,specialProgramCode), HttpMethod.GET,
+				new HttpEntity<>(httpHeaders), GradSpecialProgram.class).getBody();
+		if(gradSpecialProgramDetails != null) {
+			UUID specialProgramID = gradSpecialProgramDetails.getId();
+			Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findById(specialProgramID);
+			if(gradStudentSpecialOptional.isPresent()) {
+				return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
+			}
+			return null;
+		}
+		return null;
 	}
 }
