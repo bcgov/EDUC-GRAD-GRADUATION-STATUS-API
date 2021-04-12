@@ -110,7 +110,9 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GradStudentSpecialProgram> getStudentGradSpecialProgram(@PathVariable String pen,@PathVariable String specialProgramID) {
         logger.debug("Get Student Grad Status for PEN: " + pen);
-        GradStudentSpecialProgram gradResponse = gradStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(pen,specialProgramID);
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        GradStudentSpecialProgram gradResponse = gradStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(pen,specialProgramID,accessToken);
         if(gradResponse != null) {
     		return response.GET(gradResponse);
     	}else {
