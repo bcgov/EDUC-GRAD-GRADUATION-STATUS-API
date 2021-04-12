@@ -12,7 +12,7 @@ public class EducGradStatusApiConstants {
     public static final String GRAD_STUDENT_UPDATE_BY_PEN = "/gradstudent/pen/{pen}";
     public static final String GRADUATE_STUDENT_BY_PEN = "/pen/{pen}";
     public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/pen/{pen}";
-    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{pen}/{programCode}/{specialProgramCode}";
+    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{pen}/{specialProgramID}";
     public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "/specialprogram";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     

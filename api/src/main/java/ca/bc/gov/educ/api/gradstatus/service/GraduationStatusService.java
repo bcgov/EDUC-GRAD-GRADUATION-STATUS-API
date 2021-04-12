@@ -127,19 +127,12 @@ public class GraduationStatusService {
 		return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
 	}
 
-	public GradStudentSpecialProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(String pen,String programCode,String specialProgramCode,
-			String accessToken) {
-		HttpHeaders httpHeaders = EducGradStatusApiUtils.getHeaders(accessToken);
-		GradSpecialProgram gradSpecialProgramDetails = restTemplate.exchange(String.format(getGradSpecialProgramDetails,programCode,specialProgramCode), HttpMethod.GET,
-				new HttpEntity<>(httpHeaders), GradSpecialProgram.class).getBody();
-		if(gradSpecialProgramDetails != null) {
-			UUID specialProgramID = gradSpecialProgramDetails.getId();
-			Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findById(specialProgramID);
+	public GradStudentSpecialProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(String pen,String specialProgramID) {
+			UUID specialProgramIDUUID = UUID.fromString(specialProgramID);
+			Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findById(specialProgramIDUUID);
 			if(gradStudentSpecialOptional.isPresent()) {
 				return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
 			}
 			return null;
-		}
-		return null;
 	}
 }

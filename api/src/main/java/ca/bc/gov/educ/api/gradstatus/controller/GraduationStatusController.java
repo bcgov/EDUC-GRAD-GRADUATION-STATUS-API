@@ -108,11 +108,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
     @Operation(summary = "Find all Student Special Grad Status by PEN,PROGRAM and SPECIAL PROGRAM", description = "Get All Student Special Grad Status by PEN,PROGRAM and SPECIAL PROGRAM", tags = { "Special Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
-    public ResponseEntity<GradStudentSpecialProgram> getStudentGradSpecialProgram(@PathVariable String pen,@PathVariable String programCode,@PathVariable String specialProgramCode) {
+    public ResponseEntity<GradStudentSpecialProgram> getStudentGradSpecialProgram(@PathVariable String pen,@PathVariable String specialProgramID) {
         logger.debug("Get Student Grad Status for PEN: " + pen);
-        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        GradStudentSpecialProgram gradResponse = gradStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(pen,programCode,specialProgramCode,accessToken);
+        GradStudentSpecialProgram gradResponse = gradStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(pen,specialProgramID);
         if(gradResponse != null) {
     		return response.GET(gradResponse);
     	}else {
