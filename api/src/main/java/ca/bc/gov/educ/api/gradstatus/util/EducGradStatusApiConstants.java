@@ -12,6 +12,7 @@ public class EducGradStatusApiConstants {
     public static final String GRAD_STUDENT_UPDATE_BY_PEN = "/gradstudent/pen/{pen}";
     public static final String GRADUATE_STUDENT_BY_PEN = "/pen/{pen}";
     public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/pen/{pen}";
+    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{pen}/{programCode}/{specialProgramCode}";
     public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "/specialprogram";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     
@@ -26,4 +27,5 @@ public class EducGradStatusApiConstants {
     
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
 	public static final String ENDPOINT_GRAD_SPECIAL_PROGRAM_NAME_URL = "${endpoint.grad-program-management-api.special_program_name_by_special_program_id.url}";
+	public static final String ENDPOINT_GRAD_SPECIAL_PROGRAM_DETAILS_URL ="${endpoint.grad-program-management-api.special_program_id_by_program_code_special_program_code.url}";
 }
