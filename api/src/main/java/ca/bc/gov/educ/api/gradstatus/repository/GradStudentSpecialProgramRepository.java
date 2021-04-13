@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstatus.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,5 @@ import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntit
 public interface GradStudentSpecialProgramRepository extends JpaRepository<GradStudentSpecialProgramEntity, UUID> {
 
 	List<GradStudentSpecialProgramEntity> findByPen(String pen);
+	Optional<GradStudentSpecialProgramEntity> findByPenAndSpecialProgramID(String pen,UUID specialProgramID);
 }
