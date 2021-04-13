@@ -130,7 +130,7 @@ public class GraduationStatusService {
 	public GradStudentSpecialProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(String pen,String specialProgramID,String accessToken) {
 		HttpHeaders httpHeaders = EducGradStatusApiUtils.getHeaders(accessToken);	
 		UUID specialProgramIDUUID = UUID.fromString(specialProgramID);
-		Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findById(specialProgramIDUUID);
+		Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findByPenAndSpecialProgramID(pen,specialProgramIDUUID);
 		if(gradStudentSpecialOptional.isPresent()) {
 			GradStudentSpecialProgram responseObj= gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
 			GradSpecialProgram gradSpecialProgram = restTemplate.exchange(String.format(getGradSpecialProgramName,responseObj.getSpecialProgramID()), HttpMethod.GET,
