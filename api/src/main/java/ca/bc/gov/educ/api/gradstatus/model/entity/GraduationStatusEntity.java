@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstatus.model.entity;
 
 import java.sql.Date;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -48,5 +49,9 @@ public class GraduationStatusEntity extends BaseEntity {
     
     @Column(name = "GRAD_STUDENT_STUDENT_STATUS_FK", nullable = false)
     private String studentStatus;
+    
+    @Column(name = "STUDENT_ID", nullable = false)
+    private UUID studentID;
+    
     
 }
