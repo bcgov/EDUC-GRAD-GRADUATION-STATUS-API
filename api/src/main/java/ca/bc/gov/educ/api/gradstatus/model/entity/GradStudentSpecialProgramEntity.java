@@ -41,6 +41,9 @@ public class GradStudentSpecialProgramEntity extends BaseEntity {
     private String studentSpecialProgramData;
 
     @Column(name = "SPECIAL_PROGRAM_COMP_DT", nullable = true)
-    private Date specialProgramCompletionDate;    
+    private Date specialProgramCompletionDate;  
+    
+    @Column(name = "FK_GRAD_STUDENT_STUDENT_ID", nullable = false)
+    private UUID studentID;
 
 }

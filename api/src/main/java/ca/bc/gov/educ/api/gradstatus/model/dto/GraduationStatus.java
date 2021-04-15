@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstatus.model.dto;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 import lombok.Data;
@@ -20,5 +22,6 @@ public class GraduationStatus extends BaseModel{
     private String schoolOfRecord;
     private String studentGrade;	
     private String studentStatus;
+    private UUID studentID;
 				
 }
