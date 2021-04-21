@@ -90,7 +90,7 @@ public class GraduationStatusService {
 			
 			if(gradStatus.getStudentStatus() != null) {
 				StudentStatus statusObj = webClient.get().uri(String.format(getStudentStatusName,gradStatus.getStudentStatus())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(StudentStatus.class).block();
-				gradStatus.setSchoolName(statusObj.getDescription());
+				gradStatus.setStudentStatusName(statusObj.getDescription());
 			}
 			return gradStatus;
 		}else {
