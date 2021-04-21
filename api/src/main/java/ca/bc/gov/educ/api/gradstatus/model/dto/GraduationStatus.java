@@ -15,13 +15,16 @@ public class GraduationStatus extends BaseModel{
     private String studentGradData;
     private String pen;
     private String program;
+    private String programName;
     private String programCompletionDate;
     private String gpa;
     private String honoursStanding;
     private String recalculateGradStatus;   
     private String schoolOfRecord;
+    private String schoolName;
     private String studentGrade;	
     private String studentStatus;
+    private String studentStatusName;
     private UUID studentID;
 				
 }
