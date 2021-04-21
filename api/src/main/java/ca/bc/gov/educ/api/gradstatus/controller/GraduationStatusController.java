@@ -57,7 +57,9 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GraduationStatus> getStudentGradStatus(@PathVariable String pen) {
         logger.debug("Get Student Grad Status for PEN: " + pen);
-        GraduationStatus gradResponse = gradStatusService.getGraduationStatus(pen);
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        GraduationStatus gradResponse = gradStatusService.getGraduationStatus(pen,accessToken);
         if(gradResponse != null) {
     		return response.GET(gradResponse);
     	}else {

@@ -73,4 +73,9 @@ endpoint:
   special_program_name_by_special_program_id: 
    url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/id/%s
   special_program_id_by_program_code_special_program_code: 
-   url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/%s/%s
+   url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/%s/%s 
+  program_name_by_program_code: 
+   url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/programs/%s
+ school-api:
+  school-name-by-mincode: 
+   url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
