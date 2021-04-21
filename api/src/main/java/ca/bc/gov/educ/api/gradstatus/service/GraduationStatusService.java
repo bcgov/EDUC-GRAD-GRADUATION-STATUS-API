@@ -10,15 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
+import ca.bc.gov.educ.api.gradstatus.model.dto.School;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
 import ca.bc.gov.educ.api.gradstatus.model.transformer.GradStudentSpecialProgramTransformer;
@@ -26,15 +26,18 @@ import ca.bc.gov.educ.api.gradstatus.model.transformer.GraduationStatusTransform
 import ca.bc.gov.educ.api.gradstatus.repository.GradStudentSpecialProgramRepository;
 import ca.bc.gov.educ.api.gradstatus.repository.GraduationStatusRepository;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
-import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiUtils;
 import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
+
 
 @Service
 public class GraduationStatusService {
 
 	private static Logger logger = LoggerFactory.getLogger(GraduationStatusService.class);
 
-    @Autowired
+	@Autowired
+    WebClient webClient;
+	
+	@Autowired
     RestTemplate restTemplate;
 
     @Autowired
@@ -58,12 +61,39 @@ public class GraduationStatusService {
     @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SPECIAL_PROGRAM_DETAILS_URL)
     private String getGradSpecialProgramDetails;
     
+    @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_PROGRAM_NAME_URL)
+    private String getGradProgramName;
+    
+    @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SCHOOL_NAME_URL)
+    private String getGradSchoolName;
+    
+    
 
-	public GraduationStatus getGraduationStatus(String pen) {
+	public GraduationStatus getGraduationStatus(String pen,String accessToken) {
 		logger.info("getGraduationStatus");
-		Optional<GraduationStatusEntity> resposneOptional = graduationStatusRepository.findById(pen);
-		if(resposneOptional.isPresent()) {
-			return graduationStatusTransformer.transformToDTO(resposneOptional.get());
+		Optional<GraduationStatusEntity> responseOptional = graduationStatusRepository.findById(pen);
+		if(responseOptional.isPresent()) {
+			GraduationStatus gradStatus =  graduationStatusTransformer.transformToDTO(responseOptional.get());
+			if(gradStatus.getProgram() != null) {
+				GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,gradStatus.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
+				gradStatus.setProgramName(gradProgram.getProgramName());
+			}
+			if(gradStatus.getSchoolOfRecord() != null) {
+				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+				gradStatus.setSchoolName(schObj.getSchoolName());
+			}
+			
+			//TODO: Get Student Status Code Name
+			switch(gradStatus.getStudentStatus()) {
+				case "A":
+					gradStatus.setStudentStatusName("Active");
+					break;
+				case "T":
+					gradStatus.setStudentStatusName("Terminated");
+					break;
+				
+			}
+			return gradStatus;
 		}else {
 			return null;
 		}
@@ -98,11 +128,9 @@ public class GraduationStatusService {
 	}
 
 	public List<GradStudentSpecialProgram> getStudentGradSpecialProgram(String pen,String accessToken) {
-		HttpHeaders httpHeaders = EducGradStatusApiUtils.getHeaders(accessToken);
 		List<GradStudentSpecialProgram> specialProgramList = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByPen(pen));
 		specialProgramList.forEach(sP -> {
-			GradSpecialProgram gradSpecialProgram = restTemplate.exchange(String.format(getGradSpecialProgramName,sP.getSpecialProgramID()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), GradSpecialProgram.class).getBody();
+			GradSpecialProgram gradSpecialProgram = webClient.get().uri(String.format(getGradSpecialProgramName,sP.getSpecialProgramID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradSpecialProgram.class).block();
 			sP.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
 			sP.setSpecialProgramCode(gradSpecialProgram.getSpecialProgramCode());
 			sP.setMainProgramCode(gradSpecialProgram.getProgramCode());
@@ -128,13 +156,11 @@ public class GraduationStatusService {
 	}
 
 	public GradStudentSpecialProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(String pen,String specialProgramID,String accessToken) {
-		HttpHeaders httpHeaders = EducGradStatusApiUtils.getHeaders(accessToken);	
 		UUID specialProgramIDUUID = UUID.fromString(specialProgramID);
 		Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findByPenAndSpecialProgramID(pen,specialProgramIDUUID);
 		if(gradStudentSpecialOptional.isPresent()) {
 			GradStudentSpecialProgram responseObj= gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
-			GradSpecialProgram gradSpecialProgram = restTemplate.exchange(String.format(getGradSpecialProgramName,responseObj.getSpecialProgramID()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), GradSpecialProgram.class).getBody();
+			GradSpecialProgram gradSpecialProgram = webClient.get().uri(String.format(getGradSpecialProgramName,responseObj.getSpecialProgramID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradSpecialProgram.class).block();
 			responseObj.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
 			responseObj.setSpecialProgramCode(gradSpecialProgram.getSpecialProgramCode());
 			responseObj.setMainProgramCode(gradSpecialProgram.getProgramCode());
