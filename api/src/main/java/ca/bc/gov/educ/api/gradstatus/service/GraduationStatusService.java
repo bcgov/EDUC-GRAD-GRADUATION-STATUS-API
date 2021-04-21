@@ -19,6 +19,7 @@ import ca.bc.gov.educ.api.gradstatus.model.dto.GradSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.model.dto.School;
+import ca.bc.gov.educ.api.gradstatus.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
 import ca.bc.gov.educ.api.gradstatus.model.transformer.GradStudentSpecialProgramTransformer;
@@ -67,6 +68,10 @@ public class GraduationStatusService {
     @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SCHOOL_NAME_URL)
     private String getGradSchoolName;
     
+    @Value(EducGradStatusApiConstants.ENDPOINT_STUDENT_STATUS_URL)
+    private String getStudentStatusName;
+    
+    
     
 
 	public GraduationStatus getGraduationStatus(String pen,String accessToken) {
@@ -83,15 +88,9 @@ public class GraduationStatusService {
 				gradStatus.setSchoolName(schObj.getSchoolName());
 			}
 			
-			//TODO: Get Student Status Code Name
-			switch(gradStatus.getStudentStatus()) {
-				case "A":
-					gradStatus.setStudentStatusName("Active");
-					break;
-				case "T":
-					gradStatus.setStudentStatusName("Terminated");
-					break;
-				
+			if(gradStatus.getStudentStatus() != null) {
+				StudentStatus statusObj = webClient.get().uri(String.format(getStudentStatusName,gradStatus.getStudentStatus())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(StudentStatus.class).block();
+				gradStatus.setSchoolName(statusObj.getDescription());
 			}
 			return gradStatus;
 		}else {
@@ -167,5 +166,14 @@ public class GraduationStatusService {
 			return responseObj;
 		}
 		return null;
+	}
+
+	public boolean getStudentStatus(String statusCode) {
+		List<GraduationStatusEntity> gradList = graduationStatusRepository.existsByStatusCode(statusCode);
+		if(gradList.size() > 0) {
+			return true;
+		}else {
+			return false;
+		}
 	}
 }
