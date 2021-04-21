@@ -79,3 +79,7 @@ endpoint:
  school-api:
   school-name-by-mincode: 
    url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
+ code-api: 
+  student-status: 
+   student-status-by-status-code: 
+    url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s

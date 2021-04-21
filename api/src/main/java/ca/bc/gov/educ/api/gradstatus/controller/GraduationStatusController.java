@@ -140,4 +140,13 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.getStudentsForGraduation());
     }
     
+    @GetMapping(EducGradStatusApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Check if Student Status is valid", description = "Check if Student Status is valid", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<Boolean> getStudentStatus(@PathVariable String statusCode) { 
+    	logger.debug("getStudentStatus : ");
+        return response.GET(gradStatusService.getStudentStatus(statusCode));
+    }
+    
 }
