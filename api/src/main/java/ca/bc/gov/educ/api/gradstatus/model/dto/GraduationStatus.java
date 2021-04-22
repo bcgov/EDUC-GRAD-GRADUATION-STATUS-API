@@ -26,5 +26,7 @@ public class GraduationStatus extends BaseModel{
     private String studentStatus;
     private String studentStatusName;
     private UUID studentID;
+    private String schoolAtGrad;
+    private String schoolAtGradName;
 				
 }
