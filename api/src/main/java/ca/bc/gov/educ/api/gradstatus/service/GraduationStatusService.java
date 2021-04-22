@@ -92,6 +92,11 @@ public class GraduationStatusService {
 				StudentStatus statusObj = webClient.get().uri(String.format(getStudentStatusName,gradStatus.getStudentStatus())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(StudentStatus.class).block();
 				gradStatus.setStudentStatusName(statusObj.getDescription());
 			}
+			
+			if(gradStatus.getSchoolOfRecord() != null) {
+				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolAtGrad())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+				gradStatus.setSchoolAtGradName(schObj.getSchoolName());
+			}
 			return gradStatus;
 		}else {
 			return null;

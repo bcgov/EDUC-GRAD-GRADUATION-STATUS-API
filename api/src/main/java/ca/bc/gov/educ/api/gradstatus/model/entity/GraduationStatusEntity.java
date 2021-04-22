@@ -53,5 +53,9 @@ public class GraduationStatusEntity extends BaseEntity {
     @Column(name = "STUDENT_ID", nullable = false)
     private UUID studentID;
     
+    @Column(name = "SCHOOL_AT_GRAD", nullable = true)
+    private String schoolAtGrad;
+    
+    
     
 }
