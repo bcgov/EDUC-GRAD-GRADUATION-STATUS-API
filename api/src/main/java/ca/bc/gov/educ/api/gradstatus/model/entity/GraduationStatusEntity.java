@@ -18,7 +18,6 @@ import lombok.EqualsAndHashCode;
 @Table(name = "GRAD_STUDENT")
 public class GraduationStatusEntity extends BaseEntity {
 
-    @Id
     @Column(name = "pen", nullable = false)
     private String pen;
 
@@ -50,6 +49,7 @@ public class GraduationStatusEntity extends BaseEntity {
     @Column(name = "GRAD_STUDENT_STUDENT_STATUS_FK", nullable = false)
     private String studentStatus;
     
+    @Id
     @Column(name = "STUDENT_ID", nullable = false)
     private UUID studentID;
     

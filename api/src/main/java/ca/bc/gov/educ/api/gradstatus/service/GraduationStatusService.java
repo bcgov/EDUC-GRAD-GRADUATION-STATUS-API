@@ -73,29 +73,44 @@ public class GraduationStatusService {
     
     
     
-
-	public GraduationStatus getGraduationStatus(String pen,String accessToken) {
+    
+    public GraduationStatus getGraduationStatusForAlgorithm(UUID studentID,String accessToken) {
 		logger.info("getGraduationStatus");
-		Optional<GraduationStatusEntity> responseOptional = graduationStatusRepository.findById(pen);
+		Optional<GraduationStatusEntity> responseOptional = graduationStatusRepository.findById(studentID);
+		if(responseOptional.isPresent()) {
+			GraduationStatus gradStatus =  graduationStatusTransformer.transformToDTO(responseOptional.get());
+			return gradStatus;
+		}else {
+			return null;
+		}
+	    
+	}
+	public GraduationStatus getGraduationStatus(UUID studentID,String accessToken) {
+		logger.info("getGraduationStatus");
+		Optional<GraduationStatusEntity> responseOptional = graduationStatusRepository.findById(studentID);
 		if(responseOptional.isPresent()) {
 			GraduationStatus gradStatus =  graduationStatusTransformer.transformToDTO(responseOptional.get());
 			if(gradStatus.getProgram() != null) {
 				GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,gradStatus.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
-				gradStatus.setProgramName(gradProgram.getProgramName());
+				if(gradProgram != null)
+					gradStatus.setProgramName(gradProgram.getProgramName());
 			}
 			if(gradStatus.getSchoolOfRecord() != null) {
 				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-				gradStatus.setSchoolName(schObj.getSchoolName());
+				if(schObj != null)
+					gradStatus.setSchoolName(schObj.getSchoolName());
 			}
 			
 			if(gradStatus.getStudentStatus() != null) {
 				StudentStatus statusObj = webClient.get().uri(String.format(getStudentStatusName,gradStatus.getStudentStatus())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(StudentStatus.class).block();
-				gradStatus.setStudentStatusName(statusObj.getDescription());
+				if(statusObj != null)
+					gradStatus.setStudentStatusName(statusObj.getDescription());
 			}
 			
 			if(gradStatus.getSchoolOfRecord() != null) {
 				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolAtGrad())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-				gradStatus.setSchoolAtGradName(schObj.getSchoolName());
+				if(schObj != null)
+					gradStatus.setSchoolAtGradName(schObj.getSchoolName());
 			}
 			return gradStatus;
 		}else {
@@ -104,8 +119,8 @@ public class GraduationStatusService {
 	    
 	}
 
-	public GraduationStatus saveGraduationStatus(String pen, GraduationStatus graduationStatus) {
-		Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(pen);
+	public GraduationStatus saveGraduationStatus(UUID studentID, GraduationStatus graduationStatus) {
+		Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 		if(gradStatusOptional.isPresent()) {
 			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
@@ -117,8 +132,8 @@ public class GraduationStatusService {
 		}
 	}
 	
-	public GraduationStatus updateGraduationStatus(String pen, GraduationStatus graduationStatus) {
-		Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(pen);
+	public GraduationStatus updateGraduationStatus(UUID studentID, GraduationStatus graduationStatus) {
+		Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 		if(gradStatusOptional.isPresent()) {
 			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
@@ -126,13 +141,13 @@ public class GraduationStatusService {
 			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
-			validation.addErrorAndStop(String.format("Pen [%s] does not exists",pen));
+			validation.addErrorAndStop(String.format("Student ID [%s] does not exists",studentID));
 			return graduationStatus;
 		}
 	}
 
-	public List<GradStudentSpecialProgram> getStudentGradSpecialProgram(String pen,String accessToken) {
-		List<GradStudentSpecialProgram> specialProgramList = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByPen(pen));
+	public List<GradStudentSpecialProgram> getStudentGradSpecialProgram(UUID studentID,String accessToken) {
+		List<GradStudentSpecialProgram> specialProgramList = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
 		specialProgramList.forEach(sP -> {
 			GradSpecialProgram gradSpecialProgram = webClient.get().uri(String.format(getGradSpecialProgramName,sP.getSpecialProgramID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradSpecialProgram.class).block();
 			sP.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
@@ -159,9 +174,9 @@ public class GraduationStatusService {
 		return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
 	}
 
-	public GradStudentSpecialProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(String pen,String specialProgramID,String accessToken) {
+	public GradStudentSpecialProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(UUID studentID,String specialProgramID,String accessToken) {
 		UUID specialProgramIDUUID = UUID.fromString(specialProgramID);
-		Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findByPenAndSpecialProgramID(pen,specialProgramIDUUID);
+		Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findByStudentIDAndSpecialProgramID(studentID,specialProgramIDUUID);
 		if(gradStudentSpecialOptional.isPresent()) {
 			GradStudentSpecialProgram responseObj= gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
 			GradSpecialProgram gradSpecialProgram = webClient.get().uri(String.format(getGradSpecialProgramName,responseObj.getSpecialProgramID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradSpecialProgram.class).block();
