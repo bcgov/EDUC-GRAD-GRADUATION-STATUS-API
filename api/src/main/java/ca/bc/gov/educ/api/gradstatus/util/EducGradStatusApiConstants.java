@@ -8,11 +8,12 @@ public class EducGradStatusApiConstants {
 	public static final String API_ROOT_MAPPING = "";
     public static final String API_VERSION = "v1";
     public static final String GRADUATION_STATUS_API_ROOT_MAPPING = "/api/" + API_VERSION + "/gradstatus";
-    public static final String GRADUATION_STATUS_BY_PEN = "/pen/{pen}";
-    public static final String GRAD_STUDENT_UPDATE_BY_PEN = "/gradstudent/pen/{pen}";
+    public static final String GRADUATION_STATUS_BY_STUDENT_ID = "/studentid/{studentID}";
+    public static final String GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM = "/studentid/{studentID}/algorithm";
+    public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
     public static final String GRADUATE_STUDENT_BY_PEN = "/pen/{pen}";
-    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/pen/{pen}";
-    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{pen}/{specialProgramID}";
+    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/studentid/{studentID}";
+    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{studentID}/{specialProgramID}";
     public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "/specialprogram";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
