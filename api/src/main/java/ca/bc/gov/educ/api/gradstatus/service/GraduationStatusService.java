@@ -132,20 +132,48 @@ public class GraduationStatusService {
 		}
 	}
 	
-	public GraduationStatus updateGraduationStatus(UUID studentID, GraduationStatus graduationStatus) {
-		Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
-		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
-		if(gradStatusOptional.isPresent()) {
-			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGradData");
-			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
+	public GraduationStatus updateGraduationStatus(UUID studentID, GraduationStatus graduationStatus,String accessToken) {
+		validateData(graduationStatus,accessToken);
+		if(validation.hasErrors()) {
+			validation.stopOnErrors();
+    		return new GraduationStatus();
 		}else {
-			validation.addErrorAndStop(String.format("Student ID [%s] does not exists",studentID));
-			return graduationStatus;
+			Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+			GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
+			if(gradStatusOptional.isPresent()) {
+				GraduationStatusEntity gradEnity = gradStatusOptional.get();			
+				BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGradData");
+				gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
+				return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
+			}else {
+				validation.addErrorAndStop(String.format("Student ID [%s] does not exists",studentID));
+				return graduationStatus;
+			}
 		}
 	}
 
+	private void validateData(GraduationStatus graduationStatus,String accessToken) {
+		GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,graduationStatus.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
+		if(gradProgram == null)
+			validation.addError(String.format("Program [%s] is invalid",graduationStatus.getProgram()));
+		School schObj = webClient.get().uri(String.format(getGradSchoolName,graduationStatus.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if(schObj == null) {
+			validation.addError(String.format("Invalid School entered, School [%s] does not exist on the School table",graduationStatus.getSchoolOfRecord()));
+		}else {
+			if(schObj.getOpenFlag().equalsIgnoreCase("N")) {
+				validation.addError(String.format("This School [%s] is Closed",graduationStatus.getSchoolOfRecord()));
+			}
+		}
+		
+		School schAtGradObj = webClient.get().uri(String.format(getGradSchoolName,graduationStatus.getSchoolAtGrad())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if(schAtGradObj == null) {
+			validation.addError(String.format("Invalid School entered, School [%s] does not exist on the School table",graduationStatus.getSchoolAtGrad()));
+		}else {
+			if(schAtGradObj.getOpenFlag().equalsIgnoreCase("N")) {
+				validation.addError(String.format("This School [%s] is Closed",graduationStatus.getSchoolAtGrad()));
+			}
+		}		
+	}
 	public List<GradStudentSpecialProgram> getStudentGradSpecialProgram(UUID studentID,String accessToken) {
 		List<GradStudentSpecialProgram> specialProgramList = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
 		specialProgramList.forEach(sP -> {
