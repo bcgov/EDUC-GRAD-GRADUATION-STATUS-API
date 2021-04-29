@@ -100,11 +100,13 @@ public class GraduationStatusController {
     public ResponseEntity<GraduationStatus> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) {
         logger.debug("update student Grad Status for Student ID: " + studentID);
         validation.requiredField(graduationStatus.getPen(), "Student ID");
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
         if(validation.hasErrors()) {
     		validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-        return response.GET(gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus));
+        return response.GET(gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken));
     }
     
     @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN)
