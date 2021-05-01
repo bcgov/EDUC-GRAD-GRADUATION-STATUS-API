@@ -1,7 +1,11 @@
 package ca.bc.gov.educ.api.gradstatus.service;
 
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +23,7 @@ import ca.bc.gov.educ.api.gradstatus.model.dto.GradSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.model.dto.School;
+import ca.bc.gov.educ.api.gradstatus.model.dto.Student;
 import ca.bc.gov.educ.api.gradstatus.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
@@ -28,6 +33,8 @@ import ca.bc.gov.educ.api.gradstatus.repository.GradStudentSpecialProgramReposit
 import ca.bc.gov.educ.api.gradstatus.repository.GraduationStatusRepository;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
 import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 
 @Service
@@ -71,7 +78,8 @@ public class GraduationStatusService {
     @Value(EducGradStatusApiConstants.ENDPOINT_STUDENT_STATUS_URL)
     private String getStudentStatusName;
     
-    
+    @Value(EducGradStatusApiConstants.ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL)
+    private String getPenStudentAPIByStudentIDURL;
     
     
     public GraduationStatus getGraduationStatusForAlgorithm(UUID studentID,String accessToken) {
@@ -141,8 +149,12 @@ public class GraduationStatusService {
 			Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 			GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 			if(gradStatusOptional.isPresent()) {
-				GraduationStatusEntity gradEnity = gradStatusOptional.get();			
-				BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGradData");
+				GraduationStatusEntity gradEnity = gradStatusOptional.get();
+				validateStudentStatus(gradEnity.getStudentStatus());
+				if(!Objects.equals(sourceObject, gradEnity)) {
+					gradEnity.setRecalculateGradStatus("Y");	
+				}
+				BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGradData","recalculateGradStatus");
 				gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 				return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 			}else {
@@ -152,10 +164,34 @@ public class GraduationStatusService {
 		}
 	}
 
+	private void validateStudentStatus(String studentStatus) {
+		if(studentStatus.equalsIgnoreCase("M")) {
+			validation.addErrorAndStop("Student GRAD data cannot be updated for students with a status of 'M' merged");
+		}
+		if(studentStatus.equalsIgnoreCase("T")) {
+			validation.addErrorAndStop("This student has been terminated.  Re-activate by setting their status to 'A' if they are currently attending school");
+		}
+		if(studentStatus.equalsIgnoreCase("D")) {
+			validation.addErrorAndStop("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
+		}		
+	}
 	private void validateData(GraduationStatus graduationStatus,String accessToken) {
+		Student studentObj = webClient.get().uri(String.format(getPenStudentAPIByStudentIDURL, graduationStatus.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+		
 		GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,graduationStatus.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
-		if(gradProgram == null)
+		if(gradProgram == null) {
 			validation.addError(String.format("Program [%s] is invalid",graduationStatus.getProgram()));
+		}else {
+			if(graduationStatus.getProgram().contains("1950")) {
+				if(!graduationStatus.getStudentGrade().equalsIgnoreCase("AD") && !graduationStatus.getStudentGrade().equalsIgnoreCase("AN")) {
+					validation.addWarning(String.format("Student grade should be one of AD or AN if the student program is [%s]",graduationStatus.getProgram()));
+				}
+			}else {
+				if(graduationStatus.getStudentGrade().equalsIgnoreCase("AD") || graduationStatus.getStudentGrade().equalsIgnoreCase("AN")) {
+					validation.addWarning(String.format("Student grade should not be AD or AN for this program [%s]",graduationStatus.getProgram()));
+				}
+			}
+		}
 		School schObj = webClient.get().uri(String.format(getGradSchoolName,graduationStatus.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
 		if(schObj == null) {
 			validation.addError(String.format("Invalid School entered, School [%s] does not exist on the School table",graduationStatus.getSchoolOfRecord()));
@@ -173,7 +209,24 @@ public class GraduationStatusService {
 				validation.addError(String.format("This School [%s] is Closed",graduationStatus.getSchoolAtGrad()));
 			}
 		}		
+		
+		if(graduationStatus.getStudentStatus().equalsIgnoreCase("D") || graduationStatus.getStudentStatus().equalsIgnoreCase("M")) {
+			if(!graduationStatus.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
+				validation.addError("Status code selected is at odds with the PEN data for this student");
+			}
+		}else {
+			if(!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
+				validation.addError("Status code selected is at odds with the PEN data for this student");
+			}
+		}
+		
+		if(graduationStatus.getStudentGrade().equalsIgnoreCase("AN") || graduationStatus.getStudentGrade().equalsIgnoreCase("AD")) {
+			if(calculateAge(studentObj.getDob()) < 18) {
+				validation.addError("Adult student should be at least 18 years old");
+			}
+		}
 	}
+	
 	public List<GradStudentSpecialProgram> getStudentGradSpecialProgram(UUID studentID,String accessToken) {
 		List<GradStudentSpecialProgram> specialProgramList = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
 		specialProgramList.forEach(sP -> {
@@ -183,6 +236,13 @@ public class GraduationStatusService {
 			sP.setMainProgramCode(gradSpecialProgram.getProgramCode());
 		});
 		return specialProgramList;
+	}
+	
+	public int calculateAge(String dob) {
+		DateTimeFormatter DATEFORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate birthDate = LocalDate.parse(dob, DATEFORMATTER);	   
+		LocalDate currentDate = LocalDate.now();
+	    return Period.between(birthDate, currentDate).getYears();
 	}
 
 	public GradStudentSpecialProgram saveStudentGradSpecialProgram(GradStudentSpecialProgram gradStudentSpecialProgram) {
