@@ -33,5 +33,6 @@ public class EducGradStatusApiConstants {
 	public static final String ENDPOINT_GRAD_PROGRAM_NAME_URL="${endpoint.grad-program-management-api.program_name_by_program_code.url}";
 	public static final String ENDPOINT_GRAD_SCHOOL_NAME_URL="${endpoint.school-api.school-name-by-mincode.url}";
 	public static final String ENDPOINT_STUDENT_STATUS_URL="${endpoint.code-api.student-status.student-status-by-status-code.url}";
+	public static final String ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL = "${endpoint.pen-student-api.by-studentid.url}";
 	
 }

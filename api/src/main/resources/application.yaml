@@ -83,3 +83,6 @@ endpoint:
   student-status: 
    student-status-by-status-code: 
     url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s
+ pen-student-api:
+   by-studentid:
+     url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s
