@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstatus.model.entity;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Column;
