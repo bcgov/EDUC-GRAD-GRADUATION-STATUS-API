@@ -33,6 +33,8 @@ spring:
     user:
       name: ${API_USERNAME}
       password: ${API_PASSWORD}
+  codec:
+    max-in-memory-size: 10MB
 
 #Logging properties
 logging:
