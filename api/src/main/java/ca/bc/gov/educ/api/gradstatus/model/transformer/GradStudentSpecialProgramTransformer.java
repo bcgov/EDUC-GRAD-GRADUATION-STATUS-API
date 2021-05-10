@@ -22,7 +22,7 @@ public class GradStudentSpecialProgramTransformer {
 
     public GradStudentSpecialProgram transformToDTO (GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity) {
     	GradStudentSpecialProgram gradStudentSpecialProgram = modelMapper.map(gradStudentSpecialProgramEntity, GradStudentSpecialProgram.class);
-    	gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStudentSpecialProgram.getSpecialProgramCompletionDate() != null ? gradStudentSpecialProgram.getSpecialProgramCompletionDate().toString():null));
+    	gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStudentSpecialProgram.getSpecialProgramCompletionDate() != null ? gradStudentSpecialProgram.getSpecialProgramCompletionDate():null));
     	return gradStudentSpecialProgram;
     }
 
@@ -32,16 +32,15 @@ public class GradStudentSpecialProgramTransformer {
             cae = gradStudentSpecialProgramEntity.get();
         	
         GradStudentSpecialProgram gradStudentSpecialProgram = modelMapper.map(cae, GradStudentSpecialProgram.class);
-        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStudentSpecialProgram.getSpecialProgramCompletionDate() != null ? gradStudentSpecialProgram.getSpecialProgramCompletionDate().toString():null));
+        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStudentSpecialProgram.getSpecialProgramCompletionDate() != null ? gradStudentSpecialProgram.getSpecialProgramCompletionDate():null));
         return gradStudentSpecialProgram;
     }
 
 	public List<GradStudentSpecialProgram> transformToDTO (Iterable<GradStudentSpecialProgramEntity> gradStudentSpecialProgramEntities ) {
-		List<GradStudentSpecialProgram> gradStudentSpecialProgramList = new ArrayList<GradStudentSpecialProgram>();
+		List<GradStudentSpecialProgram> gradStudentSpecialProgramList = new ArrayList<>();
         for (GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity : gradStudentSpecialProgramEntities) {
-        	GradStudentSpecialProgram gradStudentSpecialProgram = new GradStudentSpecialProgram();
-        	gradStudentSpecialProgram = modelMapper.map(gradStudentSpecialProgramEntity, GradStudentSpecialProgram.class);            
-        	gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStudentSpecialProgram.getSpecialProgramCompletionDate() != null ? gradStudentSpecialProgram.getSpecialProgramCompletionDate().toString():null));
+        	GradStudentSpecialProgram gradStudentSpecialProgram = modelMapper.map(gradStudentSpecialProgramEntity, GradStudentSpecialProgram.class);            
+        	gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStudentSpecialProgram.getSpecialProgramCompletionDate() != null ? gradStudentSpecialProgram.getSpecialProgramCompletionDate():null));
         	gradStudentSpecialProgramList.add(gradStudentSpecialProgram);
         }
         return gradStudentSpecialProgramList;
