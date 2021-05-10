@@ -57,7 +57,7 @@ public class GraduationStatusController {
     @Operation(summary = "Find Student Grad Status by PEN", description = "Get Student Grad Status by PEN", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GraduationStatus> getStudentGradStatus(@PathVariable String studentID) {
-        logger.debug("Get Student Grad Status for studentID: " + studentID);
+        logger.debug("Get Student Grad Status for studentID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
         GraduationStatus gradResponse = gradStatusService.getGraduationStatus(UUID.fromString(studentID),accessToken);
@@ -73,10 +73,8 @@ public class GraduationStatusController {
     @Operation(summary = "Find Student Grad Status by Student ID for algorithm", description = "Get Student Grad Status by Student ID for algorithm", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GraduationStatus> getStudentGradStatusForAlgorithm(@PathVariable String studentID) {
-        logger.debug("Get Student Grad Status for studentID: " + studentID);
-        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        GraduationStatus gradResponse = gradStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID),accessToken);
+        logger.debug("Get Student Grad Status for studentID");
+        GraduationStatus gradResponse = gradStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
         if(gradResponse != null) {
     		return response.GET(gradResponse);
     	}else {
@@ -89,7 +87,7 @@ public class GraduationStatusController {
     @Operation(summary = "Save Student Grad Status by PEN", description = "Save Student Grad Status by PEN", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStatus> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) {
-        logger.debug("Save student Grad Status for Student ID: " + studentID);        
+        logger.debug("Save student Grad Status for Student ID");        
         return response.GET(gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus));
     } 
     
@@ -98,7 +96,7 @@ public class GraduationStatusController {
     @Operation(summary = "Update Student Grad Status by PEN", description = "Update Student Grad Status by PEN", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStatus> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) {
-        logger.debug("update student Grad Status for Student ID: " + studentID);
+        logger.debug("update student Grad Status for Student ID");
         validation.requiredField(graduationStatus.getPen(), "Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
@@ -114,11 +112,11 @@ public class GraduationStatusController {
     @Operation(summary = "Find all Student Special Grad Status by Student ID", description = "Get All Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<List<GradStudentSpecialProgram>> getStudentGradSpecialProgram(@PathVariable String studentID) {
-        logger.debug("Get Student Grad Status for Student ID: " + studentID);
+        logger.debug("Get Student Grad Status for Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
         List<GradStudentSpecialProgram> gradResponse = gradStatusService.getStudentGradSpecialProgram(UUID.fromString(studentID),accessToken);
-        if(gradResponse.size() > 0) {
+        if(!gradResponse.isEmpty()) {
     		return response.GET(gradResponse);
     	}else {
     		return response.NO_CONTENT();
@@ -130,7 +128,7 @@ public class GraduationStatusController {
     @Operation(summary = "Find all Student Special Grad Status by Student ID,SPECIAL PROGRAM ID", description = "Get All Student Special Grad Status by Student ID,SPECIAL PROGRAM ID", tags = { "Special Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GradStudentSpecialProgram> getStudentGradSpecialProgram(@PathVariable String studentID,@PathVariable String specialProgramID) {
-        logger.debug("Get Student Grad Status for Student ID: " + studentID);
+        logger.debug("Get Student Grad Status for Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
         GradStudentSpecialProgram gradResponse = gradStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(UUID.fromString(studentID),specialProgramID,accessToken);

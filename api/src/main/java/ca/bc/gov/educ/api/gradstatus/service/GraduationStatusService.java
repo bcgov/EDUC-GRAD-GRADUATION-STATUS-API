@@ -78,13 +78,15 @@ public class GraduationStatusService {
     @Value(EducGradStatusApiConstants.ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL)
     private String getPenStudentAPIByStudentIDURL;
     
+    private static final String CREATED_BY="createdBy";
+	private static final String CREATED_TIMESTAMP="createdTimestamp";
     
-    public GraduationStatus getGraduationStatusForAlgorithm(UUID studentID,String accessToken) {
+    
+    public GraduationStatus getGraduationStatusForAlgorithm(UUID studentID) {
 		logger.info("getGraduationStatus");
 		Optional<GraduationStatusEntity> responseOptional = graduationStatusRepository.findById(studentID);
 		if(responseOptional.isPresent()) {
-			GraduationStatus gradStatus =  graduationStatusTransformer.transformToDTO(responseOptional.get());
-			return gradStatus;
+			return graduationStatusTransformer.transformToDTO(responseOptional.get());
 		}else {
 			return null;
 		}
@@ -96,15 +98,10 @@ public class GraduationStatusService {
 		if(responseOptional.isPresent()) {
 			GraduationStatus gradStatus =  graduationStatusTransformer.transformToDTO(responseOptional.get());
 			if(gradStatus.getProgram() != null) {
-				GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,gradStatus.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
-				if(gradProgram != null)
-					gradStatus.setProgramName(gradProgram.getProgramName());
+				gradStatus.setProgramName(getProgramName(gradStatus.getProgram(), accessToken));
 			}
-			if(gradStatus.getSchoolOfRecord() != null) {
-				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-				if(schObj != null)
-					gradStatus.setSchoolName(schObj.getSchoolName());
-			}
+			if(gradStatus.getSchoolOfRecord() != null) 
+				gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecord(),accessToken));
 			
 			if(gradStatus.getStudentStatus() != null) {
 				StudentStatus statusObj = webClient.get().uri(String.format(getStudentStatusName,gradStatus.getStudentStatus())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(StudentStatus.class).block();
@@ -112,11 +109,9 @@ public class GraduationStatusService {
 					gradStatus.setStudentStatusName(statusObj.getDescription());
 			}
 			
-			if(gradStatus.getSchoolOfRecord() != null) {
-				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolAtGrad())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-				if(schObj != null)
-					gradStatus.setSchoolAtGradName(schObj.getSchoolName());
-			}
+			if(gradStatus.getSchoolOfRecord() != null)
+				gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolOfRecord(),accessToken));
+			
 			return gradStatus;
 		}else {
 			return null;
@@ -129,7 +124,7 @@ public class GraduationStatusService {
 		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 		if(gradStatusOptional.isPresent()) {
 			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGrade","studentStatus");
+			BeanUtils.copyProperties(sourceObject,gradEnity,CREATED_BY,CREATED_TIMESTAMP);
 			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
@@ -152,13 +147,28 @@ public class GraduationStatusService {
 			}else {
 				gradEnity.setRecalculateGradStatus(null);
 			}
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGradData","recalculateGradStatus");
+			BeanUtils.copyProperties(sourceObject,gradEnity,CREATED_BY,CREATED_TIMESTAMP,"studentGradData","recalculateGradStatus");
 			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
 			validation.addErrorAndStop(String.format("Student ID [%s] does not exists",studentID));
 			return graduationStatus;
 		}
+	}
+	
+	private String getSchoolName(String minCode,String accessToken) {
+		School schObj = webClient.get().uri(String.format(getGradSchoolName,minCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if(schObj != null)
+			return schObj.getSchoolName();
+		else 
+			return null;
+	}
+	
+	private String getProgramName(String programCode,String accessToken) {
+		GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,programCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
+		if(gradProgram != null)
+			return gradProgram.getProgramName();
+		return null;
 	}
 
 	private void validateStudentStatus(String studentStatus) {
@@ -172,70 +182,82 @@ public class GraduationStatusService {
 			validation.addErrorAndStop("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
 		}		
 	}
+	private void validateProgram(GraduationStatusEntity sourceEntity,String accessToken) {
+		GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,sourceEntity.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
+		if(gradProgram == null) {
+			validation.addError(String.format("Program [%s] is invalid",sourceEntity.getProgram()));
+		}else {
+			if(sourceEntity.getProgram().contains("1950")) {
+				if(!sourceEntity.getStudentGrade().equalsIgnoreCase("AD") && !sourceEntity.getStudentGrade().equalsIgnoreCase("AN")) {
+					validation.addError(String.format("Student grade should be one of AD or AN if the student program is [%s]",sourceEntity.getProgram()));
+				}
+			}else {
+				if(sourceEntity.getStudentGrade().equalsIgnoreCase("AD") || sourceEntity.getStudentGrade().equalsIgnoreCase("AN")) {
+					validation.addError(String.format("Student grade should not be AD or AN for this program [%s]",sourceEntity.getProgram()));
+				}
+			}
+		}
+	}
+	
+	private void validateSchool(String minCode,String accessToken) {
+		School schObj = webClient.get().uri(String.format(getGradSchoolName,minCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if(schObj == null) {
+			validation.addError(String.format("Invalid School entered, School [%s] does not exist on the School table",minCode));
+		}else {
+			if(schObj.getOpenFlag().equalsIgnoreCase("N")) {
+				validation.addError(String.format("This School [%s] is Closed",minCode));
+			}
+		}
+	}
+	
+	private void validateStudentGrade(GraduationStatusEntity sourceEntity, String accessToken) {
+		Student studentObj = webClient.get().uri(String.format(getPenStudentAPIByStudentIDURL, sourceEntity.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+		if(sourceEntity.getStudentStatus().equalsIgnoreCase("D") || sourceEntity.getStudentStatus().equalsIgnoreCase("M")) {
+			if(!sourceEntity.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
+				validation.addError("Status code selected is at odds with the PEN data for this student");
+			}
+		}else {
+			if(!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
+				validation.addError("Status code selected is at odds with the PEN data for this student");
+			}
+		}
+		
+		if((sourceEntity.getStudentGrade().equalsIgnoreCase("AN") || sourceEntity.getStudentGrade().equalsIgnoreCase("AD")) && calculateAge(studentObj.getDob()) < 18) {
+				validation.addError("Adult student should be at least 18 years old");
+		}
+	}
 	private boolean validateData(GraduationStatusEntity sourceEntity,GraduationStatusEntity existingEntity,String accessToken) {
 		boolean hasDataChangd = false;
 		validateStudentStatus(existingEntity.getStudentStatus());
 		if(!sourceEntity.getProgram().equalsIgnoreCase(existingEntity.getProgram())) {
 			hasDataChangd = true;
-			GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,sourceEntity.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
-			if(gradProgram == null) {
-				validation.addError(String.format("Program [%s] is invalid",sourceEntity.getProgram()));
-			}else {
-				if(sourceEntity.getProgram().contains("1950")) {
-					if(!sourceEntity.getStudentGrade().equalsIgnoreCase("AD") && !sourceEntity.getStudentGrade().equalsIgnoreCase("AN")) {
-						validation.addWarning(String.format("Student grade should be one of AD or AN if the student program is [%s]",sourceEntity.getProgram()));
-					}
-				}else {
-					if(sourceEntity.getStudentGrade().equalsIgnoreCase("AD") || sourceEntity.getStudentGrade().equalsIgnoreCase("AN")) {
-						validation.addWarning(String.format("Student grade should not be AD or AN for this program [%s]",sourceEntity.getProgram()));
-					}
-				}
-			}
+			validateProgram(sourceEntity,accessToken);
 		}
 		if(!sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
 			hasDataChangd = true;
-			School schObj = webClient.get().uri(String.format(getGradSchoolName,sourceEntity.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-			if(schObj == null) {
-				validation.addError(String.format("Invalid School entered, School [%s] does not exist on the School table",sourceEntity.getSchoolOfRecord()));
-			}else {
-				if(schObj.getOpenFlag().equalsIgnoreCase("N")) {
-					validation.addError(String.format("This School [%s] is Closed",sourceEntity.getSchoolOfRecord()));
-				}
-			}
+			validateSchool(sourceEntity.getSchoolOfRecord(),accessToken);
 		}
 		if(!sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
 			hasDataChangd = true;
-			School schAtGradObj = webClient.get().uri(String.format(getGradSchoolName,sourceEntity.getSchoolAtGrad())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-			if(schAtGradObj == null) {
-				validation.addError(String.format("Invalid School entered, School [%s] does not exist on the School table",sourceEntity.getSchoolAtGrad()));
-			}else {
-				if(schAtGradObj.getOpenFlag().equalsIgnoreCase("N")) {
-					validation.addError(String.format("This School [%s] is Closed",sourceEntity.getSchoolAtGrad()));
-				}
-			}
+			validateSchool(sourceEntity.getSchoolAtGrad(),accessToken);
 		}
 		if(!sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()) || !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus())) {
 			hasDataChangd = true;
-			Student studentObj = webClient.get().uri(String.format(getPenStudentAPIByStudentIDURL, sourceEntity.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
-			if(sourceEntity.getStudentStatus().equalsIgnoreCase("D") || sourceEntity.getStudentStatus().equalsIgnoreCase("M")) {
-				if(!sourceEntity.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
-					validation.addError("Status code selected is at odds with the PEN data for this student");
-				}
-			}else {
-				if(!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
-					validation.addError("Status code selected is at odds with the PEN data for this student");
-				}
-			}
-			
-			if(sourceEntity.getStudentGrade().equalsIgnoreCase("AN") || sourceEntity.getStudentGrade().equalsIgnoreCase("AD")) {
-				if(calculateAge(studentObj.getDob()) < 18) {
-					validation.addError("Adult student should be at least 18 years old");
-				}
-			}
+			validateStudentGrade(sourceEntity,accessToken);
+		}
+		if(sourceEntity.getGpa() != null && !sourceEntity.getGpa().equalsIgnoreCase(existingEntity.getGpa())) {
+				hasDataChangd = true;
+				sourceEntity.setHonoursStanding(getHonoursFlag(sourceEntity.getGpa()));
 		}
 		return hasDataChangd;
 	}
 	
+	private String getHonoursFlag(String gPA) {
+		if (Float.parseFloat(gPA) > 3)
+            return "Y";
+        else
+            return "N";
+    }
 	public List<GradStudentSpecialProgram> getStudentGradSpecialProgram(UUID studentID,String accessToken) {
 		List<GradStudentSpecialProgram> specialProgramList = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
 		specialProgramList.forEach(sP -> {
@@ -248,8 +270,8 @@ public class GraduationStatusService {
 	}
 	
 	public int calculateAge(String dob) {
-		DateTimeFormatter DATEFORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate birthDate = LocalDate.parse(dob, DATEFORMATTER);	   
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate birthDate = LocalDate.parse(dob, dateFormatter);	   
 		LocalDate currentDate = LocalDate.now();
 	    return Period.between(birthDate, currentDate).getYears();
 	}
@@ -259,7 +281,7 @@ public class GraduationStatusService {
 		GradStudentSpecialProgramEntity sourceObject = gradStudentSpecialProgramTransformer.transformToEntity(gradStudentSpecialProgram);
 		if(gradStudentSpecialOptional.isPresent()) {
 			GradStudentSpecialProgramEntity gradEnity = gradStudentSpecialOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp");
+			BeanUtils.copyProperties(sourceObject,gradEnity,CREATED_BY,CREATED_TIMESTAMP);
 			gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
 			return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
 		}else {
@@ -287,10 +309,6 @@ public class GraduationStatusService {
 
 	public boolean getStudentStatus(String statusCode) {
 		List<GraduationStatusEntity> gradList = graduationStatusRepository.existsByStatusCode(statusCode);
-		if(gradList.size() > 0) {
-			return true;
-		}else {
-			return false;
-		}
+		return !gradList.isEmpty();
 	}
 }
