@@ -33,6 +33,8 @@ spring:
     user:
       name: ${API_USERNAME}
       password: ${API_PASSWORD}
+  codec:
+    max-in-memory-size: 10MB
 
 #Logging properties
 logging:
@@ -50,7 +52,7 @@ logging:
         gov:
           educ:
             api:
-              graduationstatus: ${APP_LOG_LEVEL}
+              gradstatus: ${APP_LOG_LEVEL}
     org:
       springframework:
         web: ${SPRING_WEB_LOG_LEVEL}
@@ -83,3 +85,6 @@ endpoint:
   student-status: 
    student-status-by-status-code: 
     url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s
+ pen-student-api:
+   by-studentid:
+     url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s

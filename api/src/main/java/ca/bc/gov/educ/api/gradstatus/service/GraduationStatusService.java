@@ -1,6 +1,9 @@
 package ca.bc.gov.educ.api.gradstatus.service;
 
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +22,7 @@ import ca.bc.gov.educ.api.gradstatus.model.dto.GradSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgram;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.model.dto.School;
+import ca.bc.gov.educ.api.gradstatus.model.dto.Student;
 import ca.bc.gov.educ.api.gradstatus.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
@@ -71,15 +75,18 @@ public class GraduationStatusService {
     @Value(EducGradStatusApiConstants.ENDPOINT_STUDENT_STATUS_URL)
     private String getStudentStatusName;
     
+    @Value(EducGradStatusApiConstants.ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL)
+    private String getPenStudentAPIByStudentIDURL;
+    
+    private static final String CREATED_BY="createdBy";
+	private static final String CREATED_TIMESTAMP="createdTimestamp";
     
     
-    
-    public GraduationStatus getGraduationStatusForAlgorithm(UUID studentID,String accessToken) {
+    public GraduationStatus getGraduationStatusForAlgorithm(UUID studentID) {
 		logger.info("getGraduationStatus");
 		Optional<GraduationStatusEntity> responseOptional = graduationStatusRepository.findById(studentID);
 		if(responseOptional.isPresent()) {
-			GraduationStatus gradStatus =  graduationStatusTransformer.transformToDTO(responseOptional.get());
-			return gradStatus;
+			return graduationStatusTransformer.transformToDTO(responseOptional.get());
 		}else {
 			return null;
 		}
@@ -91,15 +98,10 @@ public class GraduationStatusService {
 		if(responseOptional.isPresent()) {
 			GraduationStatus gradStatus =  graduationStatusTransformer.transformToDTO(responseOptional.get());
 			if(gradStatus.getProgram() != null) {
-				GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,gradStatus.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
-				if(gradProgram != null)
-					gradStatus.setProgramName(gradProgram.getProgramName());
+				gradStatus.setProgramName(getProgramName(gradStatus.getProgram(), accessToken));
 			}
-			if(gradStatus.getSchoolOfRecord() != null) {
-				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-				if(schObj != null)
-					gradStatus.setSchoolName(schObj.getSchoolName());
-			}
+			if(gradStatus.getSchoolOfRecord() != null) 
+				gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecord(),accessToken));
 			
 			if(gradStatus.getStudentStatus() != null) {
 				StudentStatus statusObj = webClient.get().uri(String.format(getStudentStatusName,gradStatus.getStudentStatus())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(StudentStatus.class).block();
@@ -107,11 +109,9 @@ public class GraduationStatusService {
 					gradStatus.setStudentStatusName(statusObj.getDescription());
 			}
 			
-			if(gradStatus.getSchoolOfRecord() != null) {
-				School schObj = webClient.get().uri(String.format(getGradSchoolName,gradStatus.getSchoolAtGrad())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-				if(schObj != null)
-					gradStatus.setSchoolAtGradName(schObj.getSchoolName());
-			}
+			if(gradStatus.getSchoolOfRecord() != null)
+				gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolOfRecord(),accessToken));
+			
 			return gradStatus;
 		}else {
 			return null;
@@ -124,7 +124,7 @@ public class GraduationStatusService {
 		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 		if(gradStatusOptional.isPresent()) {
 			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGrade","studentStatus");
+			BeanUtils.copyProperties(sourceObject,gradEnity,CREATED_BY,CREATED_TIMESTAMP);
 			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
@@ -132,12 +132,22 @@ public class GraduationStatusService {
 		}
 	}
 	
-	public GraduationStatus updateGraduationStatus(UUID studentID, GraduationStatus graduationStatus) {
+	public GraduationStatus updateGraduationStatus(UUID studentID, GraduationStatus graduationStatus,String accessToken) {
 		Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
 		if(gradStatusOptional.isPresent()) {
-			GraduationStatusEntity gradEnity = gradStatusOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp","studentGradData");
+			GraduationStatusEntity gradEnity = gradStatusOptional.get();
+			boolean hasDataChanged = validateData(sourceObject,gradEnity,accessToken);			
+			if(validation.hasErrors()) {
+				validation.stopOnErrors();
+				return new GraduationStatus();
+			}
+			if(hasDataChanged) {
+				gradEnity.setRecalculateGradStatus("Y");	
+			}else {
+				gradEnity.setRecalculateGradStatus(null);
+			}
+			BeanUtils.copyProperties(sourceObject,gradEnity,CREATED_BY,CREATED_TIMESTAMP,"studentGradData","recalculateGradStatus");
 			gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 			return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
 		}else {
@@ -145,7 +155,109 @@ public class GraduationStatusService {
 			return graduationStatus;
 		}
 	}
+	
+	private String getSchoolName(String minCode,String accessToken) {
+		School schObj = webClient.get().uri(String.format(getGradSchoolName,minCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if(schObj != null)
+			return schObj.getSchoolName();
+		else 
+			return null;
+	}
+	
+	private String getProgramName(String programCode,String accessToken) {
+		GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,programCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
+		if(gradProgram != null)
+			return gradProgram.getProgramName();
+		return null;
+	}
 
+	private void validateStudentStatus(String studentStatus) {
+		if(studentStatus.equalsIgnoreCase("M")) {
+			validation.addErrorAndStop("Student GRAD data cannot be updated for students with a status of 'M' merged");
+		}
+		if(studentStatus.equalsIgnoreCase("T")) {
+			validation.addErrorAndStop("This student has been terminated.  Re-activate by setting their status to 'A' if they are currently attending school");
+		}
+		if(studentStatus.equalsIgnoreCase("D")) {
+			validation.addErrorAndStop("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
+		}		
+	}
+	private void validateProgram(GraduationStatusEntity sourceEntity,String accessToken) {
+		GradProgram gradProgram = webClient.get().uri(String.format(getGradProgramName,sourceEntity.getProgram())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProgram.class).block();
+		if(gradProgram == null) {
+			validation.addError(String.format("Program [%s] is invalid",sourceEntity.getProgram()));
+		}else {
+			if(sourceEntity.getProgram().contains("1950")) {
+				if(!sourceEntity.getStudentGrade().equalsIgnoreCase("AD") && !sourceEntity.getStudentGrade().equalsIgnoreCase("AN")) {
+					validation.addError(String.format("Student grade should be one of AD or AN if the student program is [%s]",sourceEntity.getProgram()));
+				}
+			}else {
+				if(sourceEntity.getStudentGrade().equalsIgnoreCase("AD") || sourceEntity.getStudentGrade().equalsIgnoreCase("AN")) {
+					validation.addError(String.format("Student grade should not be AD or AN for this program [%s]",sourceEntity.getProgram()));
+				}
+			}
+		}
+	}
+	
+	private void validateSchool(String minCode,String accessToken) {
+		School schObj = webClient.get().uri(String.format(getGradSchoolName,minCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if(schObj == null) {
+			validation.addError(String.format("Invalid School entered, School [%s] does not exist on the School table",minCode));
+		}else {
+			if(schObj.getOpenFlag().equalsIgnoreCase("N")) {
+				validation.addError(String.format("This School [%s] is Closed",minCode));
+			}
+		}
+	}
+	
+	private void validateStudentGrade(GraduationStatusEntity sourceEntity, String accessToken) {
+		Student studentObj = webClient.get().uri(String.format(getPenStudentAPIByStudentIDURL, sourceEntity.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+		if(sourceEntity.getStudentStatus().equalsIgnoreCase("D") || sourceEntity.getStudentStatus().equalsIgnoreCase("M")) {
+			if(!sourceEntity.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
+				validation.addError("Status code selected is at odds with the PEN data for this student");
+			}
+		}else {
+			if(!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
+				validation.addError("Status code selected is at odds with the PEN data for this student");
+			}
+		}
+		
+		if((sourceEntity.getStudentGrade().equalsIgnoreCase("AN") || sourceEntity.getStudentGrade().equalsIgnoreCase("AD")) && calculateAge(studentObj.getDob()) < 18) {
+				validation.addError("Adult student should be at least 18 years old");
+		}
+	}
+	private boolean validateData(GraduationStatusEntity sourceEntity,GraduationStatusEntity existingEntity,String accessToken) {
+		boolean hasDataChangd = false;
+		validateStudentStatus(existingEntity.getStudentStatus());
+		if(!sourceEntity.getProgram().equalsIgnoreCase(existingEntity.getProgram())) {
+			hasDataChangd = true;
+			validateProgram(sourceEntity,accessToken);
+		}
+		if(!sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
+			hasDataChangd = true;
+			validateSchool(sourceEntity.getSchoolOfRecord(),accessToken);
+		}
+		if(!sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
+			hasDataChangd = true;
+			validateSchool(sourceEntity.getSchoolAtGrad(),accessToken);
+		}
+		if(!sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()) || !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus())) {
+			hasDataChangd = true;
+			validateStudentGrade(sourceEntity,accessToken);
+		}
+		if(sourceEntity.getGpa() != null && !sourceEntity.getGpa().equalsIgnoreCase(existingEntity.getGpa())) {
+				hasDataChangd = true;
+				sourceEntity.setHonoursStanding(getHonoursFlag(sourceEntity.getGpa()));
+		}
+		return hasDataChangd;
+	}
+	
+	private String getHonoursFlag(String gPA) {
+		if (Float.parseFloat(gPA) > 3)
+            return "Y";
+        else
+            return "N";
+    }
 	public List<GradStudentSpecialProgram> getStudentGradSpecialProgram(UUID studentID,String accessToken) {
 		List<GradStudentSpecialProgram> specialProgramList = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
 		specialProgramList.forEach(sP -> {
@@ -156,13 +268,20 @@ public class GraduationStatusService {
 		});
 		return specialProgramList;
 	}
+	
+	public int calculateAge(String dob) {
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate birthDate = LocalDate.parse(dob, dateFormatter);	   
+		LocalDate currentDate = LocalDate.now();
+	    return Period.between(birthDate, currentDate).getYears();
+	}
 
 	public GradStudentSpecialProgram saveStudentGradSpecialProgram(GradStudentSpecialProgram gradStudentSpecialProgram) {
 		Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgram.getId());
 		GradStudentSpecialProgramEntity sourceObject = gradStudentSpecialProgramTransformer.transformToEntity(gradStudentSpecialProgram);
 		if(gradStudentSpecialOptional.isPresent()) {
 			GradStudentSpecialProgramEntity gradEnity = gradStudentSpecialOptional.get();			
-			BeanUtils.copyProperties(sourceObject,gradEnity,"createdBy","createdTimestamp");
+			BeanUtils.copyProperties(sourceObject,gradEnity,CREATED_BY,CREATED_TIMESTAMP);
 			gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
 			return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
 		}else {
@@ -190,10 +309,6 @@ public class GraduationStatusService {
 
 	public boolean getStudentStatus(String statusCode) {
 		List<GraduationStatusEntity> gradList = graduationStatusRepository.existsByStatusCode(statusCode);
-		if(gradList.size() > 0) {
-			return true;
-		}else {
-			return false;
-		}
+		return !gradList.isEmpty();
 	}
 }
