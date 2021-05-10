@@ -22,7 +22,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
     	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
-    	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate().toString():null));
+    	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
     	return gradStatus;
     }
 
@@ -32,16 +32,15 @@ public class GraduationStatusTransformer {
             cae = gradStatusEntity.get();
         	
         GraduationStatus gradStatus = modelMapper.map(cae, GraduationStatus.class);
-        gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate().toString():null));
+        gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
         return gradStatus;
     }
 
 	public List<GraduationStatus> transformToDTO (Iterable<GraduationStatusEntity> gradStatusEntities ) {
-		List<GraduationStatus> gradStatusList = new ArrayList<GraduationStatus>();
+		List<GraduationStatus> gradStatusList = new ArrayList<>();
         for (GraduationStatusEntity gradStatusEntity : gradStatusEntities) {
-        	GraduationStatus gradStatus = new GraduationStatus();
-        	gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);            
-        	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate().toString():null));
+        	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);            
+        	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
         	gradStatusList.add(gradStatus);
         }
         return gradStatusList;
