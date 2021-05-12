@@ -232,7 +232,7 @@ public class GraduationStatusService {
             		String.format("Invalid School entered, School [%s] does not exist on the School table", minCode));
         } else {
             if (schObj.getOpenFlag().equalsIgnoreCase("N")) {
-                validation.addError(String.format("This School [%s] is Closed", minCode));
+                validation.addWarning(String.format("This School [%s] is Closed", minCode));
             }
         }
     }
