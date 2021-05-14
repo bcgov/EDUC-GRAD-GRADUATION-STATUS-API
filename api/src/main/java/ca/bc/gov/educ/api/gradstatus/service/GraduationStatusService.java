@@ -1,15 +1,15 @@
 package ca.bc.gov.educ.api.gradstatus.service;
 
 
-import ca.bc.gov.educ.api.gradstatus.model.dto.*;
-import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntity;
-import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
-import ca.bc.gov.educ.api.gradstatus.model.transformer.GradStudentSpecialProgramTransformer;
-import ca.bc.gov.educ.api.gradstatus.model.transformer.GraduationStatusTransformer;
-import ca.bc.gov.educ.api.gradstatus.repository.GradStudentSpecialProgramRepository;
-import ca.bc.gov.educ.api.gradstatus.repository.GraduationStatusRepository;
-import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
-import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -19,12 +19,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradProgram;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradSpecialProgram;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgram;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgramReq;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentUngradReasons;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradUngradReasons;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
+import ca.bc.gov.educ.api.gradstatus.model.dto.School;
+import ca.bc.gov.educ.api.gradstatus.model.dto.Student;
+import ca.bc.gov.educ.api.gradstatus.model.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntity;
+import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
+import ca.bc.gov.educ.api.gradstatus.model.transformer.GradStudentSpecialProgramTransformer;
+import ca.bc.gov.educ.api.gradstatus.model.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstatus.repository.GradStudentSpecialProgramRepository;
+import ca.bc.gov.educ.api.gradstatus.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
+import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
+import reactor.core.publisher.Mono;
 
 
 @Service
@@ -70,6 +83,12 @@ public class GraduationStatusService {
 
     @Value(EducGradStatusApiConstants.ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL)
     private String getPenStudentAPIByStudentIDURL;
+    
+    @Value(EducGradStatusApiConstants.ENDPOINT_SAVE_STUDENT_UNGRAD_REASON_BY_STUDENT_ID_URL)
+    private String saveStudentUngradReasonByStudentIDURL;
+  
+    @Value(EducGradStatusApiConstants.ENDPOINT_GET_UNGRAD_REASON_DETAILS_URL)
+    private String confirmUngradReasonIsValid;    
 
     private static final String CREATED_BY = "createdBy";
     private static final String CREATED_TIMESTAMP = "createdTimestamp";
@@ -331,6 +350,30 @@ public class GraduationStatusService {
             return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
         }
     }
+    
+    public GradStudentSpecialProgram updateStudentGradSpecialProgram(GradStudentSpecialProgramReq gradStudentSpecialProgramReq,String accessToken) {
+        Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional =
+				gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramReq.getId());
+        GradStudentSpecialProgramEntity sourceObject = new GradStudentSpecialProgramEntity();
+        GradSpecialProgram gradSpecialProgram = webClient.get()
+				.uri(String.format(getGradSpecialProgramDetails, gradStudentSpecialProgramReq.getMainProgramCode(),gradStudentSpecialProgramReq.getSpecialProgramCode()))
+				.headers(h -> h.setBearerAuth(accessToken))
+				.retrieve()
+				.bodyToMono(GradSpecialProgram.class)
+				.block();
+        sourceObject.setPen(gradStudentSpecialProgramReq.getPen());
+        sourceObject.setStudentID(gradStudentSpecialProgramReq.getStudentID());
+        sourceObject.setSpecialProgramCompletionDate(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate() != null ?Date.valueOf(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate()) : null);
+        sourceObject.setSpecialProgramID(gradSpecialProgram.getId());
+        if (gradStudentSpecialOptional.isPresent()) {
+            GradStudentSpecialProgramEntity gradEnity = gradStudentSpecialOptional.get();
+            BeanUtils.copyProperties(sourceObject, gradEnity, CREATED_BY, CREATED_TIMESTAMP);
+            gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
+            return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
+        } else {
+            return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
+        }
+    }
 
     public List<GraduationStatus> getStudentsForGraduation() {
         return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
@@ -360,5 +403,41 @@ public class GraduationStatusService {
     public boolean getStudentStatus(String statusCode) {
         List<GraduationStatusEntity> gradList = graduationStatusRepository.existsByStatusCode(statusCode);
         return !gradList.isEmpty();
+    }
+    
+    public GraduationStatus ungradStudent(UUID studentID, String ungradReasonCode, String accessToken) {
+        if(StringUtils.isNotBlank(ungradReasonCode)) {
+        	GradUngradReasons ungradReasonObj = webClient.get().uri(String.format(confirmUngradReasonIsValid,ungradReasonCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradUngradReasons.class).block();
+    		if(ungradReasonObj != null) {
+		    	Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+		        if (gradStatusOptional.isPresent()) {
+		            GraduationStatusEntity gradEnity = gradStatusOptional.get();
+		            saveUngradReason(gradEnity.getPen(),studentID,ungradReasonCode,accessToken);
+		            gradEnity.setRecalculateGradStatus("Y");
+		            gradEnity.setProgramCompletionDate(null);
+		            gradEnity.setHonoursStanding(null);
+		            gradEnity.setGpa(null);
+		            gradEnity.setSchoolAtGrad(null);
+		            return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));	            
+		        } else {
+		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
+		            return null;
+		        }
+    		}else {
+    			validation.addErrorAndStop(String.format("Invalid Ungrad Reason Code [%s]",ungradReasonCode));
+    			return null;
+    		}
+        }else {
+        	validation.addErrorAndStop("Ungrad Reason Code is required");
+        	return null;
+        }
+    }
+    
+    public void saveUngradReason(String pen, UUID studentID, String ungradReasonCode, String accessToken) {
+    	GradStudentUngradReasons toBeSaved = new GradStudentUngradReasons();
+        toBeSaved.setStudentID(studentID);
+        toBeSaved.setPen(pen);
+        toBeSaved.setUngradReasonCode(ungradReasonCode);
+        webClient.post().uri(String.format(saveStudentUngradReasonByStudentIDURL,studentID)).headers(h -> h.setBearerAuth(accessToken)).body(Mono.just(toBeSaved), GradStudentUngradReasons.class).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
     }
 }

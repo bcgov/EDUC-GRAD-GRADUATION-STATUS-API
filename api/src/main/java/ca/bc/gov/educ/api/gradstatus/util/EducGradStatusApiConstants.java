@@ -18,8 +18,10 @@ public class EducGradStatusApiConstants {
     public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{studentID}/{specialProgramID}";
     public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "/specialprogram";
+    public static final String UPDATE_GRAD_STUDENT_SPECIAL_PROGRAM = "/gradstudent/specialprogram";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
+    public static final String UNGRAD_STUDENT = "/ungradstudent/studentid/{studentID}";
     
     //Default Attribute value constants
     public static final String DEFAULT_CREATED_BY = "GraduationStatusAPI";
@@ -37,5 +39,6 @@ public class EducGradStatusApiConstants {
 	public static final String ENDPOINT_GRAD_SCHOOL_NAME_URL="${endpoint.school-api.school-name-by-mincode.url}";
 	public static final String ENDPOINT_STUDENT_STATUS_URL="${endpoint.code-api.student-status.student-status-by-status-code.url}";
 	public static final String ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL = "${endpoint.pen-student-api.by-studentid.url}";
-	
+	public static final String ENDPOINT_SAVE_STUDENT_UNGRAD_REASON_BY_STUDENT_ID_URL = "${endpoint.grad-common-api.save-student-ungrad-reason.url}";
+	public static final String ENDPOINT_GET_UNGRAD_REASON_DETAILS_URL = "${endpoint.code-api.ungrad-reason.ungrad-reason-by-reason-code.url}";
 }
