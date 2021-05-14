@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgram;
+import ca.bc.gov.educ.api.gradstatus.model.dto.GradStudentSpecialProgramReq;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
@@ -84,7 +86,7 @@ public class GraduationStatusController {
     
     @PostMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
-    @Operation(summary = "Save Student Grad Status by PEN", description = "Save Student Grad Status by PEN", tags = { "Student Graduation Status" })
+    @Operation(summary = "Save Student Grad Status by Student ID", description = "Save Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStatus> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) {
         logger.debug("Save student Grad Status for Student ID");        
@@ -93,7 +95,7 @@ public class GraduationStatusController {
     
     @PostMapping (EducGradStatusApiConstants.GRAD_STUDENT_UPDATE_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
-    @Operation(summary = "Update Student Grad Status by PEN", description = "Update Student Grad Status by PEN", tags = { "Student Graduation Status" })
+    @Operation(summary = "Update Student Grad Status by Student ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStatus> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) {
         logger.debug("update student Grad Status for Student ID");
@@ -148,6 +150,17 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.saveStudentGradSpecialProgram(gradStudentSpecialProgram));
     }
     
+    @PostMapping (EducGradStatusApiConstants.UPDATE_GRAD_STUDENT_SPECIAL_PROGRAM)
+    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_SPECIAL_PROGRAM)
+    @Operation(summary = "Update/Create Student Special Grad Status by Student ID", description = "Update/Create Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<GradStudentSpecialProgram> updateStudentGradSpecialProgram(@RequestBody GradStudentSpecialProgramReq gradStudentSpecialProgramReq) {
+        logger.debug("Update student Grad Status for PEN: ");
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        return response.GET(gradStatusService.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq,accessToken));
+    }
+    
     @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_RECALCULATE)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students For Batch Algorithm", description = "Get Students For Batch Algorithm", tags = { "Batch Algorithm" })
@@ -164,6 +177,22 @@ public class GraduationStatusController {
     public ResponseEntity<Boolean> getStudentStatus(@PathVariable String statusCode) { 
     	logger.debug("getStudentStatus : ");
         return response.GET(gradStatusService.getStudentStatus(statusCode));
+    }
+    
+    @PostMapping (EducGradStatusApiConstants.UNGRAD_STUDENT)
+    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Ungrad Student Grad Status by STudent ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    public ResponseEntity<GraduationStatus> ungradStudent(@PathVariable String studentID,  @RequestParam(value = "ungradReasonCode", required = false) String ungradReasonCode) {
+        logger.debug("update student Grad Status for Student ID");
+        validation.requiredField(studentID, "Student ID");
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        if(validation.hasErrors()) {
+    		validation.stopOnErrors();
+    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	}
+        return response.GET(gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,accessToken));
     }
     
 }
