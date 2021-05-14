@@ -89,6 +89,12 @@ endpoint:
   student-status: 
    student-status-by-status-code: 
     url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s
+  ungrad-reason: 
+   ungrad-reason-by-reason-code: 
+    url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/ungradreason/%s
  pen-student-api:
    by-studentid:
      url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s
+ grad-common-api: 
+  save-student-ungrad-reason: 
+   url: https://educ-grad-common-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/common/studentungradreason/studentid/%s
