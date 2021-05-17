@@ -261,22 +261,24 @@ public class GraduationStatusService {
 				.retrieve()
 				.bodyToMono(Student.class)
 				.block();
-        if (sourceEntity.getStudentStatus().equalsIgnoreCase("D")
-				|| sourceEntity.getStudentStatus().equalsIgnoreCase("M")) {
-            if (!sourceEntity.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
-                validation.addError("Status code selected is at odds with the PEN data for this student");
-            }
-        } else {
-            if (!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
-                validation.addError("Status code selected is at odds with the PEN data for this student");
-            }
+        if(sourceEntity.getStudentStatus() != null) {
+	        if (sourceEntity.getStudentStatus().equalsIgnoreCase("D")
+					|| sourceEntity.getStudentStatus().equalsIgnoreCase("M")) {
+	            if (!sourceEntity.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
+	                validation.addError("Status code selected is at odds with the PEN data for this student");
+	            }
+	        } else {
+	            if (!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
+	                validation.addError("Status code selected is at odds with the PEN data for this student");
+	            }
+	        }
         }
-
-        if ((sourceEntity.getStudentGrade().equalsIgnoreCase("AN")
+        if (sourceEntity.getStudentGrade() != null && (sourceEntity.getStudentGrade().equalsIgnoreCase("AN")
 				|| sourceEntity.getStudentGrade().equalsIgnoreCase("AD"))
 				&& calculateAge(studentObj.getDob()) < 18) {
             validation.addError("Adult student should be at least 18 years old");
         }
+        
     }
 
     private boolean validateData(GraduationStatusEntity sourceEntity, GraduationStatusEntity existingEntity, String accessToken) {
@@ -286,16 +288,19 @@ public class GraduationStatusService {
             hasDataChangd = true;
             validateProgram(sourceEntity, accessToken);
         }
-        if (!sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
+        
+        if (sourceEntity.getSchoolOfRecord() != null && !sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
             hasDataChangd = true;
             validateSchool(sourceEntity.getSchoolOfRecord(), accessToken);
-        }
-        if (!sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
+        }        
+        
+        if (sourceEntity.getSchoolAtGrad() != null && !sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
             hasDataChangd = true;
             validateSchool(sourceEntity.getSchoolAtGrad(), accessToken);
         }
-        if (!sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade())
-				|| !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus())) {
+        
+        if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))
+				|| (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus()))) {
             hasDataChangd = true;
             validateStudentGrade(sourceEntity, accessToken);
         }
