@@ -127,8 +127,8 @@ public class GraduationStatusService {
                     gradStatus.setStudentStatusName(statusObj.getDescription());
             }
 
-            if (gradStatus.getSchoolOfRecord() != null)
-                gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolOfRecord(), accessToken));
+            if (gradStatus.getSchoolAtGrad() != null)
+                gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolAtGrad(), accessToken));
 
             return gradStatus;
         } else {
@@ -156,19 +156,24 @@ public class GraduationStatusService {
         GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStatusEntity gradEnity = gradStatusOptional.get();
-            boolean hasDataChanged = validateData(sourceObject, gradEnity, accessToken);
-            if (validation.hasErrors()) {
-                validation.stopOnErrors();
-                return new GraduationStatus();
-            }
-            if (hasDataChanged) {
-                gradEnity.setRecalculateGradStatus("Y");
-            } else {
-                gradEnity.setRecalculateGradStatus(null);
-            }
-            BeanUtils.copyProperties(sourceObject, gradEnity, CREATED_BY, CREATED_TIMESTAMP, "studentGradData", "recalculateGradStatus");
-            gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
+            //if(gradEnity.getProgramCompletionDate() != null) {
+	            boolean hasDataChanged = validateData(sourceObject, gradEnity, accessToken);
+	            if (validation.hasErrors()) {
+	                validation.stopOnErrors();
+	                return new GraduationStatus();
+	            }
+	            if (hasDataChanged) {
+	                gradEnity.setRecalculateGradStatus("Y");
+	            } else {
+	                gradEnity.setRecalculateGradStatus(null);
+	            }
+	            BeanUtils.copyProperties(sourceObject, gradEnity, CREATED_BY, CREATED_TIMESTAMP, "studentGradData", "recalculateGradStatus");
+	            gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
+	            return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
+//            }else {
+//            	validation.addErrorAndStop("This Student Record cannot be edited");
+//                return graduationStatus;
+//            }
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return graduationStatus;
