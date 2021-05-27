@@ -31,8 +31,8 @@ public class EducGradStatusApiApplication {
     public ModelMapper modelMapper() {
 
         ModelMapper modelMapper = new ModelMapper();
-        modelMapper.typeMap(GraduationStatusEntity.class, GraduationStatus.class);
-        modelMapper.typeMap(GraduationStatus.class, GraduationStatusEntity.class);
+        modelMapper.typeMap(GraduationStatusEntity.class, GraduationStatus.class).addMappings(mapper -> mapper.skip(GraduationStatus::setProgramCompletionDate));
+        modelMapper.typeMap(GraduationStatus.class, GraduationStatusEntity.class).addMappings(mapper -> mapper.skip(GraduationStatusEntity::setProgramCompletionDate));
         return modelMapper;
     }
 

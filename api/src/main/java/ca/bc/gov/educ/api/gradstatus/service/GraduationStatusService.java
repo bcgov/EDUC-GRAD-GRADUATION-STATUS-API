@@ -270,11 +270,11 @@ public class GraduationStatusService {
 	        if (sourceEntity.getStudentStatus().equalsIgnoreCase("D")
 					|| sourceEntity.getStudentStatus().equalsIgnoreCase("M")) {
 	            if (!sourceEntity.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
-	                validation.addError("Status code selected is at odds with the PEN data for this student");
+	                validation.addError("Status code selected does not match with the PEN data for this student");
 	            }
 	        } else {
 	            if (!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
-	                validation.addError("Status code selected is at odds with the PEN data for this student");
+	                validation.addError("Status code selected does not match with the PEN data for this student");
 	            }
 	        }
         }
