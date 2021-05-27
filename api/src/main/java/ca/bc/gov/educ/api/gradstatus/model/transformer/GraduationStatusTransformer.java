@@ -26,7 +26,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
     	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
-    	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
+    	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
     	return gradStatus;
     }
 
@@ -54,7 +54,9 @@ public class GraduationStatusTransformer {
         GraduationStatusEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStatusEntity.class);
         Date programCompletionDate = null;
         try {
-        	programCompletionDate= Date.valueOf(gradStatus.getProgramCompletionDate());
+        	if(gradStatus.getProgramCompletionDate() != null) {
+        		programCompletionDate= Date.valueOf(gradStatus.getProgramCompletionDate());
+        	}
         }catch(Exception e) {
         	validation.addErrorAndStop("Invalid Date");
         }
