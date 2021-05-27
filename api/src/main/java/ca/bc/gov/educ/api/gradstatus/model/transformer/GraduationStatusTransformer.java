@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import ca.bc.gov.educ.api.gradstatus.model.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiUtils;
+import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
 
 
 @Component
@@ -19,6 +20,9 @@ public class GraduationStatusTransformer {
 
     @Autowired
     ModelMapper modelMapper;
+    
+    @Autowired
+    GradValidation validation;
 
     public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
     	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
@@ -48,7 +52,13 @@ public class GraduationStatusTransformer {
 
     public GraduationStatusEntity transformToEntity(GraduationStatus gradStatus) {
         GraduationStatusEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStatusEntity.class);
-        gradStatusEntity.setProgramCompletionDate(gradStatus.getProgramCompletionDate() != null ?Date.valueOf(gradStatus.getProgramCompletionDate()) : null);
+        Date programCompletionDate = null;
+        try {
+        	programCompletionDate= Date.valueOf(gradStatus.getProgramCompletionDate());
+        }catch(Exception e) {
+        	validation.addErrorAndStop("Invalid Date");
+        }
+        gradStatusEntity.setProgramCompletionDate(programCompletionDate);
         return gradStatusEntity;
     }
 }
