@@ -1,12 +1,17 @@
 package ca.bc.gov.educ.api.gradstatus.util;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.util.Date;
 
+@Component
+@Getter
+@Setter
 public class EducGradStatusApiConstants {
 
-	private EducGradStatusApiConstants() {
-		throw new IllegalStateException("Utility class");
-	}
     //API end-point Mapping constants
 	public static final String API_ROOT_MAPPING = "";
     public static final String API_VERSION = "v1";
@@ -33,12 +38,30 @@ public class EducGradStatusApiConstants {
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
-	public static final String ENDPOINT_GRAD_SPECIAL_PROGRAM_NAME_URL = "${endpoint.grad-program-management-api.special_program_name_by_special_program_id.url}";
-	public static final String ENDPOINT_GRAD_SPECIAL_PROGRAM_DETAILS_URL ="${endpoint.grad-program-management-api.special_program_id_by_program_code_special_program_code.url}";
-	public static final String ENDPOINT_GRAD_PROGRAM_NAME_URL="${endpoint.grad-program-management-api.program_name_by_program_code.url}";
-	public static final String ENDPOINT_GRAD_SCHOOL_NAME_URL="${endpoint.school-api.school-name-by-mincode.url}";
-	public static final String ENDPOINT_STUDENT_STATUS_URL="${endpoint.code-api.student-status.student-status-by-status-code.url}";
-	public static final String ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL = "${endpoint.pen-student-api.by-studentid.url}";
-	public static final String ENDPOINT_SAVE_STUDENT_UNGRAD_REASON_BY_STUDENT_ID_URL = "${endpoint.grad-common-api.save-student-ungrad-reason.url}";
-	public static final String ENDPOINT_GET_UNGRAD_REASON_DETAILS_URL = "${endpoint.code-api.ungrad-reason.ungrad-reason-by-reason-code.url}";
+
+    //Endpoints
+	@Value("${endpoint.grad-program-management-api.special_program_name_by_special_program_id.url}")
+	private String gradSpecialProgramNameUrl;
+
+	@Value("${endpoint.grad-program-management-api.special_program_id_by_program_code_special_program_code.url}")
+	private String gradSpecialProgramDetailsUrl;
+
+	@Value("${endpoint.grad-program-management-api.program_name_by_program_code.url}")
+	private String gradProgramNameUrl;
+
+	@Value("${endpoint.school-api.school-name-by-mincode.url}")
+	private String gradSchoolNameUrl;
+
+	@Value("${endpoint.code-api.student-status.student-status-by-status-code.url}")
+	private String studentStatusUrl;
+
+    @Value("${endpoint.pen-student-api.by-studentid.url}")
+	private String penStudentApiByStudentIdUrl;
+
+    @Value("${endpoint.grad-common-api.save-student-ungrad-reason.url}")
+	private String saveStudentUngradReasonByStudentIdUrl;
+
+    @Value("${endpoint.code-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
+	private String ungradReasonDetailsUrl;
+
 }
