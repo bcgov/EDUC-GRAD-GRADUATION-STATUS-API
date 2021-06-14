@@ -14,9 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import ca.bc.gov.educ.api.gradstatus.model.dto.GradProgram;
@@ -37,7 +36,6 @@ import ca.bc.gov.educ.api.gradstatus.repository.GradStudentSpecialProgramReposit
 import ca.bc.gov.educ.api.gradstatus.repository.GraduationStatusRepository;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
 import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
-import reactor.core.publisher.Mono;
 
 
 @Service
@@ -47,9 +45,6 @@ public class GraduationStatusService {
 
     @Autowired
     WebClient webClient;
-
-    @Autowired
-    RestTemplate restTemplate;
 
     @Autowired
     private GraduationStatusRepository graduationStatusRepository;
@@ -66,29 +61,8 @@ public class GraduationStatusService {
     @Autowired
     GradValidation validation;
 
-    @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SPECIAL_PROGRAM_NAME_URL)
-    private String getGradSpecialProgramName;
-
-    @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SPECIAL_PROGRAM_DETAILS_URL)
-    private String getGradSpecialProgramDetails;
-
-    @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_PROGRAM_NAME_URL)
-    private String getGradProgramName;
-
-    @Value(EducGradStatusApiConstants.ENDPOINT_GRAD_SCHOOL_NAME_URL)
-    private String getGradSchoolName;
-
-    @Value(EducGradStatusApiConstants.ENDPOINT_STUDENT_STATUS_URL)
-    private String getStudentStatusName;
-
-    @Value(EducGradStatusApiConstants.ENDPOINT_PEN_STUDENT_API_BY_STUDENT_ID_URL)
-    private String getPenStudentAPIByStudentIDURL;
-    
-    @Value(EducGradStatusApiConstants.ENDPOINT_SAVE_STUDENT_UNGRAD_REASON_BY_STUDENT_ID_URL)
-    private String saveStudentUngradReasonByStudentIDURL;
-  
-    @Value(EducGradStatusApiConstants.ENDPOINT_GET_UNGRAD_REASON_DETAILS_URL)
-    private String confirmUngradReasonIsValid;    
+    @Autowired
+    private EducGradStatusApiConstants constants;
 
     private static final String CREATED_BY = "createdBy";
     private static final String CREATED_TIMESTAMP = "createdTimestamp";
@@ -118,7 +92,7 @@ public class GraduationStatusService {
 
             if (gradStatus.getStudentStatus() != null) {
                 StudentStatus statusObj = webClient.get()
-                        .uri(String.format(getStudentStatusName, gradStatus.getStudentStatus()))
+                        .uri(String.format(constants.getStudentStatusUrl(), gradStatus.getStudentStatus()))
                         .headers(h -> h.setBearerAuth(accessToken))
                         .retrieve()
                         .bodyToMono(StudentStatus.class)
@@ -182,7 +156,7 @@ public class GraduationStatusService {
 
     private String getSchoolName(String minCode, String accessToken) {
         School schObj = webClient.get()
-                .uri(String.format(getGradSchoolName, minCode))
+                .uri(String.format(constants.getGradSchoolNameUrl(), minCode))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(School.class)
@@ -195,7 +169,7 @@ public class GraduationStatusService {
 
     private String getProgramName(String programCode, String accessToken) {
         GradProgram gradProgram = webClient.get()
-                .uri(String.format(getGradProgramName, programCode))
+                .uri(String.format(constants.getGradProgramNameUrl(), programCode))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(GradProgram.class)
@@ -216,7 +190,7 @@ public class GraduationStatusService {
 
     private void validateProgram(GraduationStatusEntity sourceEntity, String accessToken) {
         GradProgram gradProgram = webClient.get()
-				.uri(String.format(getGradProgramName, sourceEntity.getProgram()))
+				.uri(String.format(constants.getGradProgramNameUrl(), sourceEntity.getProgram()))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve()
 				.bodyToMono(GradProgram.class)
@@ -244,7 +218,7 @@ public class GraduationStatusService {
 
     private void validateSchool(String minCode, String accessToken) {
         School schObj = webClient.get()
-				.uri(String.format(getGradSchoolName, minCode))
+				.uri(String.format(constants.getGradSchoolNameUrl(), minCode))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve()
 				.bodyToMono(School.class)
@@ -261,7 +235,7 @@ public class GraduationStatusService {
 
     private void validateStudentGrade(GraduationStatusEntity sourceEntity, String accessToken) {
         Student studentObj = webClient.get()
-				.uri(String.format(getPenStudentAPIByStudentIDURL, sourceEntity.getStudentID()))
+				.uri(String.format(constants.getPenStudentApiByStudentIdUrl(), sourceEntity.getStudentID()))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve()
 				.bodyToMono(Student.class)
@@ -328,7 +302,7 @@ public class GraduationStatusService {
 				gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
         specialProgramList.forEach(sP -> {
             GradSpecialProgram gradSpecialProgram = webClient.get()
-					.uri(String.format(getGradSpecialProgramName, sP.getSpecialProgramID()))
+					.uri(String.format(constants.getGradSpecialProgramNameUrl(), sP.getSpecialProgramID()))
 					.headers(h -> h.setBearerAuth(accessToken))
 					.retrieve()
 					.bodyToMono(GradSpecialProgram.class)
@@ -366,7 +340,7 @@ public class GraduationStatusService {
 				gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramReq.getId());
         GradStudentSpecialProgramEntity sourceObject = new GradStudentSpecialProgramEntity();
         GradSpecialProgram gradSpecialProgram = webClient.get()
-				.uri(String.format(getGradSpecialProgramDetails, gradStudentSpecialProgramReq.getMainProgramCode(),gradStudentSpecialProgramReq.getSpecialProgramCode()))
+				.uri(String.format(constants.getGradSpecialProgramDetailsUrl(), gradStudentSpecialProgramReq.getMainProgramCode(),gradStudentSpecialProgramReq.getSpecialProgramCode()))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve()
 				.bodyToMono(GradSpecialProgram.class)
@@ -397,7 +371,7 @@ public class GraduationStatusService {
         if (gradStudentSpecialOptional.isPresent()) {
             GradStudentSpecialProgram responseObj = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
             GradSpecialProgram gradSpecialProgram = webClient.get()
-					.uri(String.format(getGradSpecialProgramName, responseObj.getSpecialProgramID()))
+					.uri(String.format(constants.getGradSpecialProgramNameUrl(), responseObj.getSpecialProgramID()))
 					.headers(h -> h.setBearerAuth(accessToken))
 					.retrieve()
 					.bodyToMono(GradSpecialProgram.class)
@@ -417,7 +391,7 @@ public class GraduationStatusService {
     
     public GraduationStatus ungradStudent(UUID studentID, String ungradReasonCode, String accessToken) {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
-        	GradUngradReasons ungradReasonObj = webClient.get().uri(String.format(confirmUngradReasonIsValid,ungradReasonCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradUngradReasons.class).block();
+        	GradUngradReasons ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradUngradReasons.class).block();
     		if(ungradReasonObj != null) {
 		    	Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		        if (gradStatusOptional.isPresent()) {
@@ -448,6 +422,6 @@ public class GraduationStatusService {
         toBeSaved.setStudentID(studentID);
         toBeSaved.setPen(pen);
         toBeSaved.setUngradReasonCode(ungradReasonCode);
-        webClient.post().uri(String.format(saveStudentUngradReasonByStudentIDURL,studentID)).headers(h -> h.setBearerAuth(accessToken)).body(Mono.just(toBeSaved), GradStudentUngradReasons.class).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
+        webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID)).headers(h -> h.setBearerAuth(accessToken)).body(BodyInserters.fromValue(toBeSaved)).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
     }
 }

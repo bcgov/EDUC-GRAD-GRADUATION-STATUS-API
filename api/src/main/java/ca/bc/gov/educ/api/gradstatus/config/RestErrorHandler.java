@@ -55,7 +55,7 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
 	}
 
 	@ExceptionHandler(value = { GradBusinessRuleException.class })
-	protected ResponseEntity<Object> handleIrisBusinessException(Exception ex, WebRequest request) {
+	protected ResponseEntity<Object> handleGradBusinessException(Exception ex, WebRequest request) {
 		ApiResponseModel<?> response = ApiResponseModel.ERROR(null);
 		validation.ifErrors(errorList -> response.addErrorMessages(errorList));
 		validation.ifWarnings(warningList -> response.addWarningMessages(warningList));
