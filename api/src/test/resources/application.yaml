@@ -1,0 +1,77 @@
+#DB Properties
+spring:
+  jmx:
+    enabled: false
+  datasource:
+    hikari:
+      pool-name: graduation-status-api-cp
+      maximum-pool-size: 1
+      connection-timeout: 6000
+      max-lifetime: 600000
+    driver-class: org.h2.Driver
+  jpa:
+    show-sql: true
+    database-platform:  org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    generate-ddl: true
+  mvc:
+    log-request-details: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+  security:
+    user:
+      name: ${API_USERNAME}
+      password: ${API_PASSWORD}
+
+#Logging properties
+logging:
+  file:
+    max-history: 1
+    clean-history-on-start: true
+    max-size: 20MB
+    name: /logs/app.log
+  #pattern:
+  #  file: %d | [${HOSTNAME}] | %clr(%5p) | [%t]   | %logger{36}:%L | %msg%n
+  #  console: %d | [${HOSTNAME}] | %clr(%5p) | [%t]   | %logger{36}:%L | %msg%n
+  level:
+    ca:
+      bc:
+        gov:
+          educ:
+            api:
+              graduationstatus: INFO
+    org:
+      springframework:
+        web: INFO
+        security: INFO
+        boot:
+          autoconfigure:
+            logging: INFO
+
+#Endpoints
+endpoint:
+  grad-program-management-api:
+    special_program_name_by_special_program_id:
+      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/id/%s
+    special_program_id_by_program_code_special_program_code:
+      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/%s/%s
+    program_name_by_program_code:
+      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/programs/%s
+  school-api:
+    school-name-by-mincode:
+      url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
+  code-api:
+    student-status:
+      student-status-by-status-code:
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s
+    ungrad-reason:
+      ungrad-reason-by-reason-code:
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/ungradreason/%s
+  pen-student-api:
+    by-studentid:
+      url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s
+  grad-common-api:
+    save-student-ungrad-reason:
+      url: https://educ-grad-common-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/common/studentungradreason/studentid/%s
