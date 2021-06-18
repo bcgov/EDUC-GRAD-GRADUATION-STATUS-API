@@ -41,7 +41,7 @@ logging:
         gov:
           educ:
             api:
-              graduationstatus: INFO
+              gradstatus: INFO
     org:
       springframework:
         web: INFO
@@ -49,6 +49,12 @@ logging:
         boot:
           autoconfigure:
             logging: INFO
+
+#NATS
+nats:
+  url: test
+  maxReconnect: 60
+  connectionName: GRAD-STATUS-API
 
 #Endpoints
 endpoint:

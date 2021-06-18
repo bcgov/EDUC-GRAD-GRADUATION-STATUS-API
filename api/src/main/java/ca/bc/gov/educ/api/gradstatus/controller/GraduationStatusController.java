@@ -3,6 +3,9 @@ package ca.bc.gov.educ.api.gradstatus.controller;
 import java.util.List;
 import java.util.UUID;
 
+import ca.bc.gov.educ.api.gradstatus.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstatus.model.entity.GradStatusEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +50,9 @@ public class GraduationStatusController {
 
     @Autowired
     GraduationStatusService gradStatusService;
+
+    @Autowired
+    Publisher publisher;
     
     @Autowired
 	GradValidation validation;
@@ -88,16 +94,18 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID", description = "Save Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<GraduationStatus> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) {
-        logger.debug("Save student Grad Status for Student ID");        
-        return response.GET(gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus));
+    public ResponseEntity<GraduationStatus> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) throws JsonProcessingException {
+        logger.debug("Save student Grad Status for Student ID");
+        var result = gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus);
+        publishToJetStream(result.getRight());
+        return response.GET(result.getLeft());
     } 
     
     @PostMapping (EducGradStatusApiConstants.GRAD_STUDENT_UPDATE_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Update Student Grad Status by Student ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<GraduationStatus> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) {
+    public ResponseEntity<GraduationStatus> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStatus graduationStatus) throws JsonProcessingException {
         logger.debug("update student Grad Status for Student ID");
         validation.requiredField(graduationStatus.getPen(), "Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
@@ -106,7 +114,9 @@ public class GraduationStatusController {
     		validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-        return response.GET(gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken));
+        var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken);
+        publishToJetStream(result.getRight());
+        return response.GET(result.getLeft());
     }
     
     @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN)
@@ -183,7 +193,7 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Ungrad Student Grad Status by STudent ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<GraduationStatus> ungradStudent(@PathVariable String studentID,  @RequestParam(value = "ungradReasonCode", required = false) String ungradReasonCode) {
+    public ResponseEntity<GraduationStatus> ungradStudent(@PathVariable String studentID,  @RequestParam(value = "ungradReasonCode", required = false) String ungradReasonCode) throws JsonProcessingException {
         logger.debug("update student Grad Status for Student ID");
         validation.requiredField(studentID, "Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
@@ -192,7 +202,12 @@ public class GraduationStatusController {
     		validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-        return response.GET(gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,accessToken));
+        var result = gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,accessToken);
+        publishToJetStream(result.getRight());
+        return response.GET(result.getLeft());
     }
-    
+
+    private void publishToJetStream(final GradStatusEvent event) {
+        publisher.dispatchChoreographyEvent(event);
+    }
 }

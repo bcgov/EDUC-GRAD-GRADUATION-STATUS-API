@@ -12,6 +12,13 @@ import java.util.Date;
 @Setter
 public class EducGradStatusApiConstants {
 
+    /**
+     * The constant GRAD_STATUS_API.
+     */
+    public static final String GRAD_STATUS_API = "GRAD-STATUS-API";
+    public static final String STREAM_NAME="GRAD_STATUS_EVENTS";
+    public static final String CORRELATION_ID = "correlationID";
+
     //API end-point Mapping constants
 	public static final String API_ROOT_MAPPING = "";
     public static final String API_VERSION = "v1";
@@ -38,6 +45,13 @@ public class EducGradStatusApiConstants {
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
+
+    //NATS
+    @Value("${nats.url}")
+    String natsUrl;
+
+    @Value("${nats.maxReconnect}")
+    Integer natsMaxReconnect;
 
     //Endpoints
 	@Value("${endpoint.grad-program-management-api.special_program_name_by_special_program_id.url}")
