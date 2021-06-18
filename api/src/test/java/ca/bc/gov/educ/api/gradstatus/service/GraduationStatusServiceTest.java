@@ -1,5 +1,8 @@
 package ca.bc.gov.educ.api.gradstatus.service;
 
+import ca.bc.gov.educ.api.gradstatus.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstatus.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstatus.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstatus.model.dto.*;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GraduationStatusEntity;
@@ -8,6 +11,7 @@ import ca.bc.gov.educ.api.gradstatus.repository.GraduationStatusRepository;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiUtils;
 import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,6 +71,16 @@ public class GraduationStatusServiceTest {
     private WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock
     private WebClient.ResponseSpec responseMock;
+
+    // NATS
+    @MockBean
+    private NatsConnection natsConnection;
+
+    @MockBean
+    private Publisher publisher;
+
+    @MockBean
+    private Subscriber subscriber;
 
     @Before
     public void setUp() {
@@ -171,7 +185,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testSaveGraduationStatusAsNew() {
+    public void testSaveGraduationStatusAsNew() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
@@ -194,8 +208,9 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.save(any(GraduationStatusEntity.class))).thenReturn(graduationStatusEntity);
 
-        var result = graduationStatusService.saveGraduationStatus(studentID, graduationStatus);
-
+        var pair = graduationStatusService.saveGraduationStatus(studentID, graduationStatus);
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
@@ -209,7 +224,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testSaveGraduationStatus() {
+    public void testSaveGraduationStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
@@ -237,8 +252,9 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
-        var result = graduationStatusService.saveGraduationStatus(studentID, input);
-
+        var pair = graduationStatusService.saveGraduationStatus(studentID, input);
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
@@ -252,7 +268,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenSameData_whenDataIsValidated_thenReturnSuccess() {
+    public void testUpdateGraduationStatus_givenSameData_whenDataIsValidated_thenReturnSuccess() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -280,8 +296,9 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
         assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
@@ -296,7 +313,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenDifferentStudentGrades_whenStudentGradeIsValidated_thenReturnSuccess() {
+    public void testUpdateGraduationStatus_givenDifferentStudentGrades_whenStudentGradeIsValidated_thenReturnSuccess() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -341,8 +358,9 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
         assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
@@ -357,7 +375,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenDifferentPrograms_whenProgramIsValidated_thenReturnSuccess() {
+    public void testUpdateGraduationStatus_givenDifferentPrograms_whenProgramIsValidated_thenReturnSuccess() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -399,8 +417,9 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
         assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
@@ -414,7 +433,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenDifferentPrograms_when1950ProgramIsValidated_thenReturnErrorWithEmptyObject() {
+    public void testUpdateGraduationStatus_givenDifferentPrograms_when1950ProgramIsValidated_thenReturnErrorWithEmptyObject() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -457,8 +476,9 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isNull();
         assertThat(result.getPen()).isNull();
@@ -472,7 +492,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenDifferentPrograms_whenProgramIsValidatedForAdultGrade_thenReturnErrorWithEmptyObject() {
+    public void testUpdateGraduationStatus_givenDifferentPrograms_whenProgramIsValidatedForAdultGrade_thenReturnErrorWithEmptyObject() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -515,8 +535,9 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isNull();
         assertThat(result.getPen()).isNull();
@@ -530,7 +551,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenDifferentSchoolOfRecords_whenSchoolIsValidated_thenReturnSuccess() {
+    public void testUpdateGraduationStatus_givenDifferentSchoolOfRecords_whenSchoolIsValidated_thenReturnSuccess() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -574,8 +595,9 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
         assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
@@ -589,7 +611,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenDifferentSchoolOfGrads_whenSchoolIsValidated_thenReturnSuccess() {
+    public void testUpdateGraduationStatus_givenDifferentSchoolOfGrads_whenSchoolIsValidated_thenReturnSuccess() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -633,8 +655,9 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
         assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
@@ -648,7 +671,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUpdateGraduationStatus_givenDifferentGPAs_whenHonoursStandingIsValidated_thenReturnSuccess() {
+    public void testUpdateGraduationStatus_givenDifferentGPAs_whenHonoursStandingIsValidated_thenReturnSuccess() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -681,8 +704,9 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
-        var result = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
-
+        var pair = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
         assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
@@ -896,7 +920,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testUgradStudent() {
+    public void testUgradStudent() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -942,8 +966,9 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.save(responseGraduationStatus)).thenReturn(responseGraduationStatus);
 
-        var result = graduationStatusService.ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
-
+        var pair = graduationStatusService.ungradStudent(studentID, ungradReasonCode, ungradReasonDesc, "accessToken");
+        assertThat(pair).isNotNull();
+        var result = pair.getLeft();
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");

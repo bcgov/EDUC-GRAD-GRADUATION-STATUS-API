@@ -3,13 +3,21 @@ package ca.bc.gov.educ.api.gradstatus.service;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import ca.bc.gov.educ.api.gradstatus.constant.EventOutcome;
+import ca.bc.gov.educ.api.gradstatus.constant.EventType;
+import ca.bc.gov.educ.api.gradstatus.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstatus.util.JsonUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.v3.core.util.Json;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -37,6 +45,8 @@ import ca.bc.gov.educ.api.gradstatus.repository.GradStudentSpecialProgramReposit
 import ca.bc.gov.educ.api.gradstatus.repository.GraduationStatusRepository;
 import ca.bc.gov.educ.api.gradstatus.util.EducGradStatusApiConstants;
 import ca.bc.gov.educ.api.gradstatus.util.GradValidation;
+
+import static ca.bc.gov.educ.api.gradstatus.constant.EventStatus.DB_COMMITTED;
 
 
 @Service
@@ -116,7 +126,7 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public GraduationStatus saveGraduationStatus(UUID studentID, GraduationStatus graduationStatus) {
+    public Pair<GraduationStatus, GradStatusEvent> saveGraduationStatus(UUID studentID, GraduationStatus graduationStatus) throws JsonProcessingException {
         Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
@@ -126,16 +136,22 @@ public class GraduationStatusService {
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.save(gradEntity);
             graduationStatusHistoryService.createGraduationStatusHistory(gradEntity);
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            final GraduationStatus responseGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreatedBy(), gradEntity.getUpdatedBy(),
+                    JsonUtil.getJsonStringFromObject(responseGraduationStatus), EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED);
+            return Pair.of(responseGraduationStatus, gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.save(sourceObject);
             graduationStatusHistoryService.createGraduationStatusHistory(sourceObject);
-            return graduationStatusTransformer.transformToDTO(sourceObject);
+            final GraduationStatus responseGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreatedBy(), sourceObject.getUpdatedBy(),
+                    JsonUtil.getJsonStringFromObject(responseGraduationStatus), EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED);
+            return Pair.of(responseGraduationStatus, gradStatusEvent);
         }
     }
 
     @Transactional
-    public GraduationStatus updateGraduationStatus(UUID studentID, GraduationStatus graduationStatus, String accessToken) {
+    public Pair<GraduationStatus, GradStatusEvent> updateGraduationStatus(UUID studentID, GraduationStatus graduationStatus, String accessToken) throws JsonProcessingException {
         Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStatusEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
@@ -144,7 +160,7 @@ public class GraduationStatusService {
 	            boolean hasDataChanged = validateData(sourceObject, gradEntity, accessToken);
 	            if (validation.hasErrors()) {
 	                validation.stopOnErrors();
-	                return new GraduationStatus();
+	                return Pair.of(new GraduationStatus(), null);
 	            }
 	            if (hasDataChanged) {
                     gradEntity.setRecalculateGradStatus("Y");
@@ -155,14 +171,17 @@ public class GraduationStatusService {
                 gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
                 gradEntity = graduationStatusRepository.save(gradEntity);
                 graduationStatusHistoryService.createGraduationStatusHistory(gradEntity);
-	            return graduationStatusTransformer.transformToDTO(gradEntity);
+                final GraduationStatus responseGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
+                final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreatedBy(), gradEntity.getUpdatedBy(),
+                        JsonUtil.getJsonStringFromObject(responseGraduationStatus), EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED);
+	            return Pair.of(responseGraduationStatus, gradStatusEvent);
 //            }else {
 //            	validation.addErrorAndStop("This Student Record cannot be edited");
 //                return graduationStatus;
 //            }
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
-            return graduationStatus;
+            return Pair.of(graduationStatus, null);
         }
     }
 
@@ -404,7 +423,7 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public GraduationStatus ungradStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) {
+    public Pair<GraduationStatus, GradStatusEvent> ungradStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
         	GradUngradReasons ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradUngradReasons.class).block();
     		if(ungradReasonObj != null) {
@@ -419,7 +438,10 @@ public class GraduationStatusService {
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     graduationStatusHistoryService.createGraduationStatusHistory(gradEntity);
-		            return graduationStatusTransformer.transformToDTO(gradEntity);
+                    final GraduationStatus graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
+                    final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreatedBy(), gradEntity.getUpdatedBy(),
+                        JsonUtil.getJsonStringFromObject(graduationStatus), EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED);
+		            return Pair.of(graduationStatus, gradStatusEvent);
 		        } else {
 		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
 		            return null;
@@ -441,5 +463,18 @@ public class GraduationStatusService {
         toBeSaved.setUngradReasonCode(ungradReasonCode);
         toBeSaved.setUngradReasonDescription(unGradDesc);
         webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID)).headers(h -> h.setBearerAuth(accessToken)).body(BodyInserters.fromValue(toBeSaved)).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
+    }
+
+    private GradStatusEvent createGradStatusEvent(String createUser, String updateUser, String jsonString, EventType eventType, EventOutcome eventOutcome) {
+        return GradStatusEvent.builder()
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .createUser(createUser)
+                .updateUser(updateUser)
+                .eventPayload(jsonString)
+                .eventType(eventType.toString())
+                .eventStatus(DB_COMMITTED.toString())
+                .eventOutcome(eventOutcome.toString())
+                .build();
     }
 }
