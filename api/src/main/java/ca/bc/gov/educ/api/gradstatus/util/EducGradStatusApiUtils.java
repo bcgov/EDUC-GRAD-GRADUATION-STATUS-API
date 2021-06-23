@@ -6,10 +6,14 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 
 public class EducGradStatusApiUtils {
 
+	private static final Logger logger = LoggerFactory.getLogger(EducGradStatusApiUtils.class);
+	
     public static String formatDate (Date date) {
         if (date == null)
             return null;
@@ -95,5 +99,18 @@ public class EducGradStatusApiUtils {
         httpHeaders.add("Content-Type", "application/json");
         httpHeaders.setBearerAuth(accessToken);
         return httpHeaders;
+    }
+	
+	 public static String parsingTraxDate(String sessionDate) {
+    	 String actualSessionDate = sessionDate + "/01";
+    	 Date temp = new Date();
+		 String sDates = null;
+         try {
+            temp = EducGradStatusApiUtils.parseDate(actualSessionDate, "yyyy/MM/dd");
+            sDates = EducGradStatusApiUtils.formatDate(temp, "yyyy-MM-dd");
+         } catch (ParseException pe) {
+            logger.error("ERROR: " + pe.getMessage());
+         }
+         return sDates;
     }
 }

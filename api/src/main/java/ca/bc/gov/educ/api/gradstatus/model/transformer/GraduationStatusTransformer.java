@@ -55,7 +55,11 @@ public class GraduationStatusTransformer {
         Date programCompletionDate = null;
         try {
         	if(gradStatus.getProgramCompletionDate() != null) {
-        		programCompletionDate= Date.valueOf(gradStatus.getProgramCompletionDate());
+        		String pDate = "";
+        		if(gradStatus.getProgramCompletionDate().length() <= 7) {
+        			pDate = EducGradStatusApiUtils.parsingTraxDate(gradStatus.getProgramCompletionDate());
+        		}
+        		programCompletionDate= Date.valueOf(pDate);
         	}
         }catch(Exception e) {
         	validation.addErrorAndStop("Invalid Date");
