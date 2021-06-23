@@ -48,7 +48,7 @@ public class Publisher {
    * @throws JetStreamApiException the jet stream api exception
    */
   private void createOrUpdateGradStatusEventStream(final Connection natsConnection) throws IOException, JetStreamApiException {
-    val streamConfiguration = StreamConfiguration.builder().name(EducGradStatusApiConstants.STREAM_NAME).replicas(1).maxMessages(1000000).addSubjects(GRAD_STATUS_EVENTS_TOPIC.toString()).build();
+    val streamConfiguration = StreamConfiguration.builder().name(EducGradStatusApiConstants.STREAM_NAME).replicas(1).maxMessages(10000).addSubjects(GRAD_STATUS_EVENTS_TOPIC.toString()).build();
     try {
       natsConnection.jetStreamManagement().updateStream(streamConfiguration);
     } catch (final JetStreamApiException exception) {
