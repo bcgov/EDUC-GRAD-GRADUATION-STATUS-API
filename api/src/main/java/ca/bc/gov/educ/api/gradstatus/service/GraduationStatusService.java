@@ -15,7 +15,6 @@ import ca.bc.gov.educ.api.gradstatus.constant.EventType;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstatus.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.swagger.v3.core.util.Json;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;

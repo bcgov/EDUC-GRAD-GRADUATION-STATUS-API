@@ -27,3 +27,4 @@ CREATE TABLE STATUS_SHEDLOCK
     CONSTRAINT STATUS_SHEDLOCK_PK PRIMARY KEY (NAME)
 );
 COMMENT ON TABLE STATUS_SHEDLOCK IS 'This table is used to achieve distributed lock between pods, for schedulers.';
+
