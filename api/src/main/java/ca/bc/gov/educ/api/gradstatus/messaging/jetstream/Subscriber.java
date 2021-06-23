@@ -56,7 +56,7 @@ public class Subscriber {
     val qName = "GRAD-STATUS-EVENTS-TOPIC-GRAD-STATUS-API-QUEUE";
     val autoAck = false;
     PushSubscribeOptions options = PushSubscribeOptions.builder().stream(EducGradStatusApiConstants.STREAM_NAME)
-        .durable("STUDENT-API-STUDENT-EVENTS-TOPIC-DURABLE")
+        .durable("GRAD-STATUS-API-GRAD-STATUS-EVENTS-TOPIC-DURABLE")
         .configuration(ConsumerConfiguration.builder().deliverPolicy(DeliverPolicy.New).build()).build();
     this.natsConnection.jetStream().subscribe(GRAD_STATUS_EVENTS_TOPIC.toString(), qName, this.natsConnection.createDispatcher(), this::onGradStatusEventsTopicMessage,
         autoAck, options);
