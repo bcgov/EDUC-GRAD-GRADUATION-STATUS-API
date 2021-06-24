@@ -55,7 +55,7 @@ public class GraduationStatusTransformer {
         Date programCompletionDate = null;
         try {
         	if(gradStatus.getProgramCompletionDate() != null) {
-        		String pDate = "";
+        		String pDate = gradStatus.getProgramCompletionDate();
         		if(gradStatus.getProgramCompletionDate().length() <= 7) {
         			pDate = EducGradStatusApiUtils.parsingTraxDate(gradStatus.getProgramCompletionDate());
         		}
