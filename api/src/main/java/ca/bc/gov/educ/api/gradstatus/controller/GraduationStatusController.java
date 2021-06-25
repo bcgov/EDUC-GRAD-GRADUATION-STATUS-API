@@ -183,7 +183,8 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Ungrad Student Grad Status by STudent ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<GraduationStatus> ungradStudent(@PathVariable String studentID,  @RequestParam(value = "ungradReasonCode", required = false) String ungradReasonCode) {
+    public ResponseEntity<GraduationStatus> ungradStudent(@PathVariable String studentID,  @RequestParam(value = "ungradReasonCode", required = false) String ungradReasonCode,
+    		 @RequestParam(value = "ungradReasonDesc", required = false) String ungradReasonDesc) {
         logger.debug("update student Grad Status for Student ID");
         validation.requiredField(studentID, "Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
@@ -192,7 +193,7 @@ public class GraduationStatusController {
     		validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-        return response.GET(gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,accessToken));
+        return response.GET(gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken));
     }
     
 }
