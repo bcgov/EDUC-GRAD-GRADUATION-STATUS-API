@@ -389,14 +389,14 @@ public class GraduationStatusService {
         return !gradList.isEmpty();
     }
     
-    public GraduationStatus ungradStudent(UUID studentID, String ungradReasonCode, String accessToken) {
+    public GraduationStatus ungradStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
         	GradUngradReasons ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradUngradReasons.class).block();
     		if(ungradReasonObj != null) {
 		    	Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		        if (gradStatusOptional.isPresent()) {
 		            GraduationStatusEntity gradEnity = gradStatusOptional.get();
-		            saveUngradReason(gradEnity.getPen(),studentID,ungradReasonCode,accessToken);
+		            saveUngradReason(gradEnity.getPen(),studentID,ungradReasonCode,ungradDesc,accessToken);
 		            gradEnity.setRecalculateGradStatus("Y");
 		            gradEnity.setProgramCompletionDate(null);
 		            gradEnity.setHonoursStanding(null);
@@ -417,11 +417,12 @@ public class GraduationStatusService {
         }
     }
     
-    public void saveUngradReason(String pen, UUID studentID, String ungradReasonCode, String accessToken) {
+    public void saveUngradReason(String pen, UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
     	GradStudentUngradReasons toBeSaved = new GradStudentUngradReasons();
         toBeSaved.setStudentID(studentID);
         toBeSaved.setPen(pen);
         toBeSaved.setUngradReasonCode(ungradReasonCode);
+        toBeSaved.setUngradReasonDescription(unGradDesc);
         webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID)).headers(h -> h.setBearerAuth(accessToken)).body(BodyInserters.fromValue(toBeSaved)).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
     }
 }

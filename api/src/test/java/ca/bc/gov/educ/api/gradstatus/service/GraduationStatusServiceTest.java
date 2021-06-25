@@ -901,6 +901,7 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
         String ungradReasonCode = "NM";
+        String ungradReasonDesc = "FDFS";
 
         GradUngradReasons ungradReasons = new GradUngradReasons();
         ungradReasons.setCode(ungradReasonCode);
@@ -941,7 +942,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.save(responseGraduationStatus)).thenReturn(responseGraduationStatus);
 
-        var result = graduationStatusService.ungradStudent(studentID, ungradReasonCode, "accessToken");
+        var result = graduationStatusService.ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -958,6 +959,7 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
         String ungradReasonCode = "NM";
+        String ungradReasonDesc= "FDFS";
 
         GradStudentUngradReasons responseStudentUngradReasons = new GradStudentUngradReasons();
         responseStudentUngradReasons.setStudentID(studentID);
@@ -971,7 +973,7 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradStudentUngradReasons.class)).thenReturn(Mono.just(responseStudentUngradReasons));
 
-        graduationStatusService.saveUngradReason(pen, studentID, ungradReasonCode, "accessToken");
+        graduationStatusService.saveUngradReason(pen, studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
 
     }
 }
