@@ -17,4 +17,5 @@ public class GradStudentUngradReasons extends BaseModel {
 	private String ungradReasonCode;
 	private String ungradReasonName;
 	private UUID studentID;
+	private String ungradReasonDescription;
 }

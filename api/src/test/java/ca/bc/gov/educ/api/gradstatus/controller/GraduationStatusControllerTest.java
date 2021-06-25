@@ -392,6 +392,7 @@ public class GraduationStatusControllerTest {
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
         String ungradReasonCode = "NM";
+        String ungradReasonDesc = "FDSS";
 
         GraduationStatus graduationStatus = new GraduationStatus();
         graduationStatus.setStudentID(studentID);
@@ -406,10 +407,10 @@ public class GraduationStatusControllerTest {
         responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
 
         Mockito.when(validation.hasErrors()).thenReturn(false);
-        Mockito.when(graduationStatusService.ungradStudent(studentID, ungradReasonCode, null)).thenReturn(graduationStatus);
+        Mockito.when(graduationStatusService.ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, null)).thenReturn(graduationStatus);
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
-        var result = graduationStatusController.ungradStudent(studentID.toString(), ungradReasonCode);
-        Mockito.verify(graduationStatusService).ungradStudent(studentID, ungradReasonCode, null);
+        var result = graduationStatusController.ungradStudent(studentID.toString(), ungradReasonCode,ungradReasonDesc);
+        Mockito.verify(graduationStatusService).ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 
