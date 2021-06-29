@@ -29,8 +29,10 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: false
-  codec:
-    max-in-memory-size: 10MB
+  security:
+    user:
+      name: ${API_USERNAME}
+      password: ${API_PASSWORD}
 
 #Logging properties
 logging:
@@ -65,36 +67,34 @@ server:
       io: 16
   #port: ${HTTP_PORT}
 
-#API Documentation
-springdoc:
-  api-docs:
-    path: /api/v1/api-docs
-  swagger-ui:
-    path: /api/v1/api-docs-ui.html
-    operationsSorter: alpha
+#NATS
+nats:
+  url: ${NATS}
+  maxReconnect: ${NATS_MAX_RECONNECT}
+  connectionName: GRAD-STATUS-API
 
 #Endpoints
-endpoint: 
- grad-program-management-api: 
-  special_program_name_by_special_program_id: 
-   url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/id/%s
-  special_program_id_by_program_code_special_program_code: 
-   url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/%s/%s 
-  program_name_by_program_code: 
-   url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/programs/%s
- school-api:
-  school-name-by-mincode: 
-   url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
- code-api: 
-  student-status: 
-   student-status-by-status-code: 
-    url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s
-  ungrad-reason: 
-   ungrad-reason-by-reason-code: 
-    url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/ungradreason/%s
- pen-student-api:
-   by-studentid:
-     url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s
- grad-common-api: 
-  save-student-ungrad-reason: 
-   url: https://educ-grad-common-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/common/studentungradreason/studentid/%s
+endpoint:
+  grad-program-management-api:
+    special_program_name_by_special_program_id:
+      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/id/%s
+    special_program_id_by_program_code_special_program_code:
+      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/%s/%s
+    program_name_by_program_code:
+      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/programs/%s
+  school-api:
+    school-name-by-mincode:
+      url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
+  code-api:
+    student-status:
+      student-status-by-status-code:
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s
+    ungrad-reason:
+      ungrad-reason-by-reason-code:
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/ungradreason/%s
+  pen-student-api:
+    by-studentid:
+      url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s
+  grad-common-api:
+    save-student-ungrad-reason:
+      url: https://educ-grad-common-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/common/studentungradreason/studentid/%s

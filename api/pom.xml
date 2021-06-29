@@ -18,18 +18,18 @@
             src/main/java/ca/bc/gov/educ/api/gradstatus/exception/**,
             src/main/java/ca/bc/gov/educ/api/gradstatus/config/**,
             src/main/java/ca/bc/gov/educ/api/gradstatus/util/**,
-            src/main/java/ca/bc/gov/educ/api/gradstatus/model/**
+            src/main/java/ca/bc/gov/educ/api/gradstatus/model/**,
+            src/main/java/ca/bc/gov/educ/api/gradstatus/messaging/**,
+            src/main/java/ca/bc/gov/educ/api/gradstatus/scheduler/**
         </sonar.exclusions>
-<!--        <sonar.coverage.exclusions>-->
-<!--            src/main/java/ca/bc/gov/educ/api/gradstatus/exception/**,-->
-<!--            src/main/java/ca/bc/gov/educ/api/gradstatus/config/**,-->
-<!--            src/main/java/ca/bc/gov/educ/api/gradstatus/util/**-->
-<!--        </sonar.coverage.exclusions>-->
         <java.version>11</java.version>
         <maven.compiler.version>3.8.0</maven.compiler.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
+        <shedlock.version>4.20.0</shedlock.version>
+        <nats.version>2.11.0</nats.version>
+        <guava.version>30.1.1-jre</guava.version>
         <springdoc.version>1.4.3</springdoc.version>
     </properties>
 
@@ -147,6 +147,33 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.javacrumbs.shedlock/shedlock-spring -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.javacrumbs.shedlock/shedlock-provider-jdbc-template -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.nats/jnats -->
+        <dependency>
+            <groupId>io.nats</groupId>
+            <artifactId>jnats</artifactId>
+            <version>${nats.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
