@@ -79,3 +79,4 @@ public class EducGradStatusApiApplication {
         return new JdbcTemplateLockProvider(jdbcTemplate, transactionManager, "STATUS_SHEDLOCK");
     }
 }
+

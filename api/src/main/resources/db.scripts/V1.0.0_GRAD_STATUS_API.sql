@@ -26,4 +26,7 @@ CREATE TABLE STATUS_SHEDLOCK
     LOCKED_BY  VARCHAR(255),
     CONSTRAINT STATUS_SHEDLOCK_PK PRIMARY KEY (NAME)
 );
+
 COMMENT ON TABLE STATUS_SHEDLOCK IS 'This table is used to achieve distributed lock between pods, for schedulers.';
+
+
