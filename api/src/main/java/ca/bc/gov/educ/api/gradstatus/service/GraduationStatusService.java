@@ -13,6 +13,7 @@ import java.util.UUID;
 import ca.bc.gov.educ.api.gradstatus.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstatus.constant.EventType;
 import ca.bc.gov.educ.api.gradstatus.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstatus.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstatus.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +56,9 @@ public class GraduationStatusService {
 
     @Autowired
     private GraduationStatusHistoryService graduationStatusHistoryService;
+
+    @Autowired
+    private GradStatusEventRepository gradStatusEventRepository;
 
     @Autowired
     WebClient webClient;
@@ -138,6 +142,7 @@ public class GraduationStatusService {
             final GraduationStatus responseGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreatedBy(), gradEntity.getUpdatedBy(),
                     JsonUtil.getJsonStringFromObject(responseGraduationStatus), EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED);
+            gradStatusEventRepository.save(gradStatusEvent);
             return Pair.of(responseGraduationStatus, gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.save(sourceObject);
@@ -145,6 +150,7 @@ public class GraduationStatusService {
             final GraduationStatus responseGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreatedBy(), sourceObject.getUpdatedBy(),
                     JsonUtil.getJsonStringFromObject(responseGraduationStatus), EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED);
+            gradStatusEventRepository.save(gradStatusEvent);
             return Pair.of(responseGraduationStatus, gradStatusEvent);
         }
     }
@@ -173,6 +179,7 @@ public class GraduationStatusService {
                 final GraduationStatus responseGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
                 final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreatedBy(), gradEntity.getUpdatedBy(),
                         JsonUtil.getJsonStringFromObject(responseGraduationStatus), EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED);
+                gradStatusEventRepository.save(gradStatusEvent);
 	            return Pair.of(responseGraduationStatus, gradStatusEvent);
 //            }else {
 //            	validation.addErrorAndStop("This Student Record cannot be edited");
@@ -440,6 +447,7 @@ public class GraduationStatusService {
                     final GraduationStatus graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreatedBy(), gradEntity.getUpdatedBy(),
                         JsonUtil.getJsonStringFromObject(graduationStatus), EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED);
+                    gradStatusEventRepository.save(gradStatusEvent);
 		            return Pair.of(graduationStatus, gradStatusEvent);
 		        } else {
 		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
